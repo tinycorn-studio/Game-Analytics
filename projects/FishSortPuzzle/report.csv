@@ -1,0 +1,7 @@
+﻿Level,Thời gian bắt đầu,Thời gian kết thúc,Thời lượng giải (giây),Ảnh bắt đầu màn,Ảnh chiến thắng,Trạng thái
+Level 01,00:22,00:32,10,level_01/board_start.jpg,level_01/victory.jpg,Hoàn thành
+Level 02,00:38,02:51,133,level_02/board_start.jpg,level_02/victory.jpg,Hoàn thành
+Level 03,03:02,05:16,134,level_03/board_start.jpg,level_03/victory.jpg,Hoàn thành
+Level 04,05:22,08:11,169,level_04/board_start.jpg,level_04/victory.jpg,Hoàn thành
+Level 05,08:21,11:02,161,level_05/board_start.jpg,level_05/victory.jpg,Hoàn thành
+Level 06,11:08,14:11,183,level_06/board_start.jpg,level_06/victory.jpg,Hoàn thành

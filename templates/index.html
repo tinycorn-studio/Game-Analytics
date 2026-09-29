@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Level Deconstructor | Competitor Analysis</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <span class="logo-icon">🎮</span>
+            <div class="logo-title">
+                <h1>Game Level Deconstructor</h1>
+                <p>Công cụ phân tích màn chơi đối thủ tự động từ Video</p>
+            </div>
+        </div>
+        <div class="project-controls">
+            <label for="projectSelect" style="font-size: 0.85rem; color: var(--text-secondary);">Dự án:</label>
+            <select id="projectSelect" onchange="switchProject(this.value)">
+                <!-- Dynamic options -->
+            </select>
+            <button class="btn btn-secondary" onclick="openNewProjectModal()">
+                <i class="fa-solid fa-plus"></i> Tạo Dự Án Mới
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Top Video / Action Card -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fa-solid fa-clapperboard" style="color: var(--accent);"></i>
+                    <span>Video Đầu Vào & Điều Khiển Phân Tích</span>
+                </div>
+                <div id="projectStatusBadge">
+                    <span class="status-badge status-ready">Sẵn sàng</span>
+                </div>
+            </div>
+
+            <div class="video-section">
+                <div class="video-info-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: var(--text-secondary); font-size: 0.85rem;">DANH SÁCH VIDEO GỐC (input_videos)</span>
+                        <span id="videoCount" style="font-size: 0.8rem; color: var(--accent);">0 video</span>
+                    </div>
+                    <select id="videoSelect" style="width: 100%;">
+                        <option value="">-- Chưa có video --</option>
+                    </select>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                        <i class="fa-solid fa-info-circle"></i> Thả video quay gameplay (.mp4) vào thư mục: 
+                        <code id="inputFolderPath" style="color: var(--accent); background: #162032; padding: 2px 6px; border-radius: 4px;">...</code>
+                    </p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; justify-content: center; gap: 0.75rem;">
+                    <button id="btnRunAnalysis" class="btn btn-primary" style="height: 50px; font-size: 1rem; justify-content: center;" onclick="runAnalysis()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> BẮT ĐẦU PHÂN TÍCH
+                    </button>
+                    <button class="btn btn-secondary" style="justify-content: center;" onclick="refreshProject()">
+                        <i class="fa-solid fa-rotate"></i> Làm Mới Dữ Liệu
+                    </button>
+                </div>
+            </div>
+
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-bar-bg">
+                    <div id="progressBarFill" class="progress-bar-fill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progressMessage">Đang xử lý video...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Level Matrix Card -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fa-solid fa-table-cells" style="color: var(--success);"></i>
+                    <span>Ma Trận Màn Chơi (Level Matrix)</span>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a id="btnDownloadExcel" href="#" class="btn btn-success" style="font-size: 0.85rem;">
+                        <i class="fa-solid fa-file-excel"></i> Tải Báo Cáo Excel (.xlsx)
+                    </a>
+                    <a id="btnDownloadCsv" href="#" class="btn btn-secondary" style="font-size: 0.85rem;">
+                        <i class="fa-solid fa-file-csv"></i> Tải CSV (.csv)
+                    </a>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table id="levelTable">
+                    <thead>
+                        <tr>
+                            <th>Màn (Level)</th>
+                            <th>Thời Gian Bắt Đầu</th>
+                            <th>Thời Gian Thắng</th>
+                            <th>Thời Lượng Giải (s)</th>
+                            <th>Ảnh Khởi Đầu (Board)</th>
+                            <th>Ảnh Chiến Thắng (Victory)</th>
+                            <th>Trạng Thái</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="levelTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                Chưa có dữ liệu phân tích. Hãy chọn video và bấm "Bắt đầu phân tích"!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Previewing Screenshots -->
+    <div id="previewModal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="card-title" id="modalLevelTitle">Level Details Preview</div>
+            <div class="modal-compare-grid">
+                <div class="modal-item">
+                    <span class="modal-label"><i class="fa-solid fa-flag"></i> Bố Cục Bắt Đầu Màn</span>
+                    <img id="modalBoardImg" src="" alt="Start Board">
+                </div>
+                <div class="modal-item">
+                    <span class="modal-label"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Màn Hình Chiến Thắng & Thưởng</span>
+                    <img id="modalVictoryImg" src="" alt="Victory Screen">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Creating New Project -->
+    <div id="newProjectModal" class="modal" onclick="closeNewProjectModal(event)">
+        <div class="modal-content" style="max-width: 450px;" onclick="event.stopPropagation()">
+            <span class="modal-close" onclick="closeNewProjectModal()">&times;</span>
+            <div class="card-title"><i class="fa-solid fa-folder-plus"></i> Tạo Dự Án Game Mới</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Nhập tên game đối thủ (viết liền không dấu, ví dụ: RoyalMatch, ScrewJam...):</p>
+            <input type="text" id="newProjectName" placeholder="Tên Game..." style="width: 100%; margin: 1rem 0;">
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button class="btn btn-secondary" onclick="closeNewProjectModal()">Hủy</button>
+                <button class="btn btn-primary" onclick="submitCreateProject()">Tạo Mới</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
