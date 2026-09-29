@@ -213,3 +213,69 @@ async function submitCreateProject() {
         alert("Lỗi: " + err);
     }
 }
+
+function openGSheetModal() {
+    const saved = localStorage.getItem("gsheet_webhook_url") || "";
+    document.getElementById("gsheetWebhookUrl").value = saved;
+    const msg = document.getElementById("gsheetResultMsg");
+    msg.style.display = "none";
+    document.getElementById("gsheetModal").style.display = "flex";
+}
+
+function closeGSheetModal() {
+    document.getElementById("gsheetModal").style.display = "none";
+}
+
+async function submitExportGSheet() {
+    const url = document.getElementById("gsheetWebhookUrl").value.trim();
+    if (!url) {
+        alert("Vui lòng nhập Webhook URL của Google Apps Script!");
+        return;
+    }
+    
+    // Save to localStorage for convenience
+    localStorage.setItem("gsheet_webhook_url", url);
+    
+    const btn = document.getElementById("btnSubmitGSheet");
+    const msg = document.getElementById("gsheetResultMsg");
+    
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi...`;
+    msg.style.display = "none";
+    
+    try {
+        const res = await fetch(`/api/project/${currentProject}/export_google_sheet`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ webhook_url: url })
+        });
+        const data = await res.json();
+        
+        msg.style.display = "block";
+        if (data.success) {
+            msg.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+            msg.style.color = "var(--success)";
+            msg.style.border = "1px solid var(--success)";
+            let html = `<strong><i class="fa-solid fa-circle-check"></i> ${data.message}</strong>`;
+            if (data.sheet_url) {
+                html += `<br><a href="${data.sheet_url}" target="_blank" style="color: var(--accent); font-weight: 600; text-decoration: underline; margin-top: 6px; display: inline-block;">👉 Bấm vào đây để mở Google Sheet</a>`;
+            }
+            msg.innerHTML = html;
+        } else {
+            msg.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
+            msg.style.color = "var(--danger)";
+            msg.style.border = "1px solid var(--danger)";
+            msg.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation"></i> Lỗi:</strong> ${data.error || "Không gửi được dữ liệu"}`;
+        }
+    } catch (err) {
+        msg.style.display = "block";
+        msg.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
+        msg.style.color = "var(--danger)";
+        msg.style.border = "1px solid var(--danger)";
+        msg.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation"></i> Lỗi kết nối:</strong> ${err}`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Gửi Lên Sheet Ngay`;
+    }
+}
+

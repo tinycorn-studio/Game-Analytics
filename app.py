@@ -1,7 +1,9 @@
 import os
 import sys
 import glob
+from datetime import datetime
 import pandas as pd
+import requests
 from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
 from core.video_processor import VideoProcessor
 from core.level_detector import LevelDetector
@@ -154,7 +156,55 @@ def download_report(name, fmt):
     elif fmt == "csv":
         file_path = os.path.join(proj_dir, "report.csv")
         return send_file(file_path, as_attachment=True, download_name=f"{name}_level_matrix.csv")
-    return jsonify({"error": "Unsupported format"}), 400
+@app.route("/api/project/<name>/export_google_sheet", methods=["POST"])
+def export_google_sheet(name):
+    proj_dir = os.path.join(PROJECTS_DIR, name)
+    if not os.path.exists(proj_dir):
+        return jsonify({"success": False, "error": "Dự án không tồn tại"}), 404
+        
+    data = request.json or {}
+    webhook_url = data.get("webhook_url", "").strip()
+    if not webhook_url:
+        return jsonify({"success": False, "error": "Vui lòng nhập Webhook URL của Google Apps Script"}), 400
+        
+    csv_path = os.path.join(proj_dir, "report.csv")
+    if not os.path.exists(csv_path):
+        return jsonify({"success": False, "error": "Chưa có dữ liệu phân tích. Hãy chạy phân tích trước!"}), 400
+        
+    try:
+        df = pd.read_csv(csv_path, encoding="utf-8-sig")
+        levels = []
+        for _, row in df.iterrows():
+            levels.append({
+                "level": str(row.get("Level", "")),
+                "start_time": str(row.get("Thời gian bắt đầu", "")),
+                "end_time": str(row.get("Thời gian kết thúc", "")),
+                "duration": int(row.get("Thời lượng giải (giây)", 0)),
+                "status": str(row.get("Trạng thái", "Hoàn thành"))
+            })
+            
+        payload = {
+            "game_name": name,
+            "exported_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "levels": levels
+        }
+        
+        # Google Apps Script web apps return a 302 redirect on POST, requests follows it
+        resp = requests.post(webhook_url, json=payload, timeout=30)
+        try:
+            res_data = resp.json()
+            return jsonify({
+                "success": True,
+                "message": res_data.get("message", "Đã xuất dữ liệu lên Google Sheet thành công!"),
+                "sheet_url": res_data.get("sheet_url", "")
+            })
+        except Exception:
+            return jsonify({
+                "success": True,
+                "message": "Đã gửi dữ liệu tới Google Apps Script thành công!"
+            })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == "__main__":
     print("Khởi động Game Level Deconstructor tại http://127.0.0.1:5000")

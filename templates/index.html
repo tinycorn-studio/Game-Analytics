@@ -83,7 +83,10 @@
                     <i class="fa-solid fa-table-cells" style="color: var(--success);"></i>
                     <span>Ma Trận Màn Chơi (Level Matrix)</span>
                 </div>
-                <div style="display: flex; gap: 0.75rem;">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button id="btnExportGSheet" class="btn btn-primary" style="font-size: 0.85rem; background-color: #0f9d58; color: #fff;" onclick="openGSheetModal()">
+                        <i class="fa-solid fa-table"></i> Xuất Google Sheet
+                    </button>
                     <a id="btnDownloadExcel" href="#" class="btn btn-success" style="font-size: 0.85rem;">
                         <i class="fa-solid fa-file-excel"></i> Tải Báo Cáo Excel (.xlsx)
                     </a>
@@ -133,6 +136,28 @@
                     <span class="modal-label"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Màn Hình Chiến Thắng & Thưởng</span>
                     <img id="modalVictoryImg" src="" alt="Victory Screen">
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Google Sheet Export -->
+    <div id="gsheetModal" class="modal" onclick="closeGSheetModal(event)">
+        <div class="modal-content" style="max-width: 540px;" onclick="event.stopPropagation()">
+            <span class="modal-close" onclick="closeGSheetModal()">&times;</span>
+            <div class="card-title"><i class="fa-solid fa-file-spreadsheet" style="color: #0f9d58;"></i> Xuất Dữ Liệu Lên Google Sheet</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; margin-top: 0.5rem;">
+                Dán đường dẫn <strong>Webhook URL (Web App URL)</strong> từ Google Apps Script của bạn vào đây:
+            </p>
+            <input type="text" id="gsheetWebhookUrl" placeholder="https://script.google.com/macros/s/.../exec" style="width: 100%; margin: 0.75rem 0;">
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-lightbulb" style="color: var(--warning);"></i> <em>Xem hướng dẫn thiết lập trong file <code>google_apps_script.js</code> (chỉ mất 1 phút).</em>
+            </p>
+            <div id="gsheetResultMsg" style="display: none; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button class="btn btn-secondary" onclick="closeGSheetModal()">Đóng</button>
+                <button id="btnSubmitGSheet" class="btn btn-success" style="background-color: #0f9d58;" onclick="submitExportGSheet()">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi Lên Sheet Ngay
+                </button>
             </div>
         </div>
     </div>
