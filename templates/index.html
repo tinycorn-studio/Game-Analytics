@@ -49,7 +49,15 @@
                     <select id="videoSelect" style="width: 100%;">
                         <option value="">-- Chưa có video --</option>
                     </select>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                        <span style="font-weight: 600; color: var(--text-secondary); font-size: 0.85rem;">GAME PROFILE (CHIẾN LƯỢC NHẬN DIỆN)</span>
+                    </div>
+                    <select id="profileSelect" style="width: 100%;">
+                        <option value="auto">⚡ Tự động nhận diện theo tên game</option>
+                    </select>
+
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-top: 0.25rem;">
                         <i class="fa-solid fa-info-circle"></i> Thả video quay gameplay (.mp4) vào thư mục: 
                         <code id="inputFolderPath" style="color: var(--accent); background: #162032; padding: 2px 6px; border-radius: 4px;">...</code>
                     </p>

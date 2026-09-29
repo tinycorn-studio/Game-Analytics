@@ -6,6 +6,9 @@
 
 ## 🌟 Tính Năng Nổi Bật (Key Features)
 
+- **Kiến Trúc Base System & Plugin Game Đa Năng**: Tách biệt hoàn toàn phần lõi hệ thống và logic nhận diện từng game:
+  - `GenericSceneDetector`: Bộ dò chuyển cảnh đa năng dùng được cho mọi tựa game.
+  - `Game Profiles`: Từng game (Fish Sort, Screw Jam...) có cấu hình và chiến lược nhận diện chuyên biệt riêng.
 - **Chuẩn hóa Video tự động (Auto-Rotate & Crop)**: Tự động phát hiện hướng quay ngang 90° từ các giả lập Android (BlueStacks, Nox, LDPlayer...) để xoay dọc về chuẩn mobile màn hình dọc.
 - **Phát hiện Màn chơi bằng Computer Vision (Scene & Victory Detection)**: Tự động quét và bắt chính xác sự kiện chiến thắng (`VICTORY`), tính toán thời gian giải từng màn và số màn hoàn thành.
 - **Trích xuất Hình ảnh Tự động (Asset Extraction)**: Cắt và lưu tự động ảnh bố cục lúc bắt đầu ván (`board_start.jpg`) và ảnh kết quả/phần thưởng (`victory.jpg`).
@@ -13,6 +16,7 @@
 - **Đồng Bộ Trực Tiếp Lên Google Sheets (Google Sheets Webhook Sync)**: Tích hợp nút xuất 1-click đẩy toàn bộ dữ liệu bảng ma trận lên Google Sheet của team qua Google Apps Script Webhook.
 - **Giao diện Web Localhost Trực quan (Web Dashboard)**: Chạy trên trình duyệt tại `http://localhost:5000` với đầy đủ tính năng:
   - Quản lý đa dự án game đối thủ.
+  - Bộ chọn Game Profile chuyên biệt hoặc chế độ Tự Động.
   - Nút bấm phân tích 1-click kèm thanh tiến trình (progress bar).
   - So sánh trực quan bố cục bàn chơi và ảnh chiến thắng trong popup.
   - Tải file Excel/CSV và xuất trực tiếp lên Google Sheets.
@@ -20,30 +24,36 @@
 
 ---
 
-## 📁 Cấu Trúc Thư Mục Tinh Gọn (Directory Structure)
+## 📁 Cấu Trúc Thư Mục (Directory Structure)
 
 ```text
 GameAnalysis/
 ├── app.py                          # Backend máy chủ Web Localhost (Flask)
 ├── run_tool.bat                    # Phím tắt 1-click khởi chạy và mở trình duyệt
 ├── requirements.txt                # Thư viện phụ thuộc Python
+├── google_apps_script.js           # Mã Webhook Google Apps Script
 │
-├── core/                           # Bộ lõi Computer Vision & Data Export
+├── core/                           # [HỆ THỐNG BASE CORE]
+│   ├── base_detector.py           # Class trừu tượng định nghĩa chuẩn của 1 Game Detector
+│   ├── generic_detector.py        # Bộ dò chuyển cảnh tổng quát cho game bất kỳ
+│   ├── profile_manager.py         # Quản lý, nạp động các Game Profile
 │   ├── video_processor.py         # Xử lý video, lấy mẫu frame, xoay dọc
-│   ├── level_detector.py          # Thuật toán bắt sự kiện VICTORY & gom cụm level
+│   ├── level_detector.py          # Level Coordinator điều phối quét & bóc tách
 │   └── report_generator.py        # Xuất dữ liệu bảng ma trận Excel (.xlsx) & CSV (.csv)
+│
+├── profiles/                       # [THƯ MỤC CHỨA CÁC GAME PROFILE]
+│   ├── generic/ (config.json)     # Profile mặc định cho game chưa có cấu hình
+│   ├── fish_sort_puzzle/          # Profile game Fish Sort Puzzle (detector.py + config.json)
+│   └── screw_jam/                 # Profile game Screw Jam (detector.py + config.json)
 │
 ├── templates/index.html            # Giao diện Web HTML Dashboard
 ├── static/                         # Tài nguyên giao diện (CSS / JavaScript)
-│   ├── css/style.css
-│   └── js/dashboard.js
 │
 └── projects/                       # Nơi lưu trữ các dự án game đối thủ
     └── FishSortPuzzle/             # Dự án mẫu thực nghiệm
         ├── input_videos/           # Chứa video gốc (.mp4)
         ├── levels/                 # Các folder màn chơi chứa ảnh JPG đã bóc tách
         │   ├── level_01/ (board_start.jpg, victory.jpg)
-        │   ├── level_02/ (board_start.jpg, victory.jpg)
         │   └── ...
         ├── report.xlsx             # Bảng ma trận cấp độ định dạng Excel
         └── report.csv              # Bảng ma trận cấp độ dạng CSV

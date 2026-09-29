@@ -1,0 +1,8 @@
+{
+  "id": "fish_sort_puzzle",
+  "name": "Fish Sort Puzzle (Shycheese)",
+  "description": "Chiến lược nhận diện chuyên sâu dòng game Fish Sort Puzzle, bắt chính xác banner VICTORY vàng và popup phần thưởng.",
+  "orientation": "portrait",
+  "detection_mode": "color_hsv_yellow_banner",
+  "victory_threshold": 6000
+}

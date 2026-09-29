@@ -2,7 +2,28 @@ let currentProject = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     loadProjects();
+    loadProfiles();
 });
+
+async function loadProfiles() {
+    try {
+        const res = await fetch("/api/profiles");
+        const data = await res.json();
+        const select = document.getElementById("profileSelect");
+        if (!select) return;
+        select.innerHTML = '<option value="auto">⚡ Tự động nhận diện theo tên game</option>';
+        if (data.profiles && data.profiles.length > 0) {
+            data.profiles.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = `🎮 ${p.name}`;
+                select.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.error("Lỗi tải profiles:", err);
+    }
+}
 
 async function loadProjects() {
     try {
@@ -138,11 +159,17 @@ async function runAnalysis() {
     pct.textContent = "10%";
     msg.textContent = "Đang khởi tạo bộ quét Computer Vision...";
 
+    const profileSelect = document.getElementById("profileSelect");
+    const profileId = profileSelect ? profileSelect.value : "auto";
+
     try {
         const response = await fetch(`/api/project/${currentProject}/analyze`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ video_name: videoName })
+            body: JSON.stringify({ 
+                video_name: videoName,
+                profile_id: profileId
+            })
         });
         
         const result = await response.json();
@@ -150,7 +177,8 @@ async function runAnalysis() {
         if (result.success) {
             bar.style.width = "100%";
             pct.textContent = "100%";
-            msg.textContent = `Phân tích hoàn tất! Phát hiện thành công ${result.levels_count} màn chơi.`;
+            const usedProf = result.profile_used || profileId;
+            msg.textContent = `Phân tích hoàn tất với profile [${usedProf}]! Phát hiện ${result.levels_count} màn chơi.`;
             setTimeout(() => {
                 progress.style.display = "none";
                 loadProjectDetails(currentProject);

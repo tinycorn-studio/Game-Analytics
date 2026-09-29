@@ -1,0 +1,7 @@
+{
+  "id": "screw_jam",
+  "name": "Screw Jam / Pin Out (Rollic / Lion)",
+  "description": "Chiến lược nhận diện dòng game Screw Puzzle / Screw Jam, bắt popup Clear/Win và hộp đựng ốc vít rỗng.",
+  "orientation": "portrait",
+  "detection_mode": "modal_completion"
+}

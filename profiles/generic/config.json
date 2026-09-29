@@ -1,0 +1,7 @@
+{
+  "id": "generic",
+  "name": "Bộ Dò Đa Năng (Generic Scene Detector)",
+  "description": "Tự động phát hiện chuyển cảnh và màn hình modal chiến thắng cho mọi game.",
+  "orientation": "auto",
+  "detection_mode": "scene_contrast"
+}

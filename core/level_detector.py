@@ -1,42 +1,23 @@
 import os
 import cv2
 import numpy as np
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any, Callable, Optional
 from .video_processor import VideoProcessor
+from .base_detector import BaseGameDetector, format_timestamp
 
-def format_timestamp(seconds: float) -> str:
-    m = int(seconds // 60)
-    s = int(seconds % 60)
-    return f"{m:02d}:{s:02d}"
-
-class LevelDetector:
-    def __init__(self, video_processor: VideoProcessor):
+class LevelCoordinator:
+    """
+    Coordinates video scanning, level boundary segmentation,
+    and asset extraction by delegating to a Game Strategy Detector.
+    """
+    def __init__(self, video_processor: VideoProcessor, detector: BaseGameDetector):
         self.vp = video_processor
+        self.detector = detector
 
-    def detect_victory_in_frame(self, frame) -> bool:
+    def scan_video(self, progress_callback: Optional[Callable[[float, str], None]] = None) -> List[Dict[str, Any]]:
         """
-        Detects if a frame contains a Victory popup banner.
-        Checks for dense yellow/gold text 'VICTORY!' in the top-middle region (y: 100-220, x: 100-620).
-        """
-        if frame is None:
-            return False
-        h, w = frame.shape[:2]
-        
-        # Region where 'VICTORY!' banner appears
-        y1, y2 = int(h * 0.08), int(h * 0.20)
-        x1, x2 = int(w * 0.12), int(w * 0.88)
-        sub = frame[y1:y2, x1:x2]
-        
-        # Bright golden yellow text filter: B < 80, G > 180, R > 210
-        yellow_mask = (sub[:, :, 0] < 80) & (sub[:, :, 1] > 180) & (sub[:, :, 2] > 210)
-        yellow_count = np.sum(yellow_mask)
-        
-        return yellow_count > 6000
-
-    def scan_video(self, progress_callback: Callable[[float, str], None] = None) -> List[Dict[str, Any]]:
-        """
-        Scans through the video at 1-second intervals to detect level progression.
-        Returns a list of detected levels with timestamps and screenshot points.
+        Scans through the video at 1-second intervals using the configured game detector.
+        Clusters victory events and computes level boundaries.
         """
         duration = int(self.vp.duration_seconds)
         vic_seconds = []
@@ -47,7 +28,7 @@ class LevelDetector:
                 progress_callback(pct, f"Đang quét video: {format_timestamp(s)} / {format_timestamp(duration)}...")
                 
             frame = self.vp.get_frame_at_second(s)
-            if frame is not None and self.detect_victory_in_frame(frame):
+            if frame is not None and self.detector.detect_victory(frame, s):
                 vic_seconds.append(s)
 
         # Cluster consecutive victory seconds into distinct victory events
@@ -58,37 +39,44 @@ class LevelDetector:
                 if s <= curr[-1] + 3:
                     curr.append(s)
                 else:
-                    events.append(curr)
+                    events.append({
+                        "start": curr[0],
+                        "end": curr[-1],
+                        "mid": curr[len(curr) // 2]
+                    })
                     curr = [s]
-            events.append(curr)
+            events.append({
+                "start": curr[0],
+                "end": curr[-1],
+                "mid": curr[len(curr) // 2]
+            })
 
         levels = []
-        prev_level_start = 22.0 # Initial game launch timestamp
+        prev_victory_event = None
         
         for idx, ev in enumerate(events, start=1):
-            v_start = ev[0]
-            v_end = ev[-1]
-            mid_victory = ev[len(ev) // 2]
+            board_shot_time = self.detector.get_board_start_timestamp(ev, prev_victory_event)
+            vic_shot_time = self.detector.get_victory_screenshot_timestamp(ev)
             
-            duration_sec = max(1, int(v_start - prev_level_start))
-            board_shot_time = prev_level_start + 2.0
-            if board_shot_time >= v_start:
-                board_shot_time = prev_level_start
-                
+            # Start of level gameplay
+            level_start_sec = (prev_victory_event["end"] + 3.0) if prev_victory_event else 22.0
+            duration_sec = max(1, int(ev["start"] - level_start_sec))
+            difficulty = self.detector.get_difficulty_label(duration_sec)
+            
             levels.append({
                 "level": idx,
-                "start_second": prev_level_start,
-                "end_second": v_start,
+                "start_second": level_start_sec,
+                "end_second": ev["start"],
                 "duration_seconds": duration_sec,
-                "start_time_str": format_timestamp(prev_level_start),
-                "end_time_str": format_timestamp(v_start),
+                "start_time_str": format_timestamp(level_start_sec),
+                "end_time_str": format_timestamp(ev["start"]),
                 "board_shot_time": board_shot_time,
-                "victory_shot_time": mid_victory,
+                "victory_shot_time": vic_shot_time,
+                "difficulty": difficulty,
                 "status": "Hoàn thành"
             })
             
-            # Next level starts after victory popup closes (typically ~2s after event end)
-            prev_level_start = v_end + 3.0
+            prev_victory_event = ev
 
         # Fallback if no victory events found
         if not levels:
@@ -101,12 +89,13 @@ class LevelDetector:
                 "end_time_str": format_timestamp(duration),
                 "board_shot_time": 2.0,
                 "victory_shot_time": max(2.0, duration - 2.0),
+                "difficulty": "Chưa xác định",
                 "status": "Đang phân tích"
             })
 
         return levels
 
-    def export_level_assets(self, levels: List[Dict[str, Any]], output_levels_dir: str, progress_callback: Callable[[float, str], None] = None):
+    def export_level_assets(self, levels: List[Dict[str, Any]], output_levels_dir: str, progress_callback: Optional[Callable[[float, str], None]] = None):
         """
         Saves board_start.jpg and victory.jpg for each level into level_XX folder.
         """
@@ -128,3 +117,7 @@ class LevelDetector:
             if progress_callback:
                 pct = 75.0 + ((i + 1) / max(1, total)) * 25.0
                 progress_callback(pct, f"Đã trích xuất hình ảnh Level {lvl_num}...")
+
+
+# Backward compatibility alias
+LevelDetector = LevelCoordinator

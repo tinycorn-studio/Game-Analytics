@@ -8,8 +8,11 @@ import pandas as pd
 import requests
 from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
 from core.video_processor import VideoProcessor
-from core.level_detector import LevelDetector
+from core.level_detector import LevelCoordinator, LevelDetector
 from core.report_generator import ReportGenerator
+from core.profile_manager import ProfileManager
+
+profile_manager = ProfileManager()
 
 if sys.platform == "win32":
     try:
@@ -123,6 +126,10 @@ def get_project_details(name):
         "levels": levels
     })
 
+@app.route("/api/profiles", methods=["GET"])
+def get_profiles():
+    return jsonify({"profiles": profile_manager.list_profiles()})
+
 @app.route("/api/project/<name>/analyze", methods=["POST"])
 def analyze_video(name):
     proj_dir = os.path.join(PROJECTS_DIR, name)
@@ -141,18 +148,34 @@ def analyze_video(name):
     levels_dir = os.path.join(proj_dir, "levels")
     os.makedirs(levels_dir, exist_ok=True)
     
+    # Resolve Game Profile
+    profile_id = data.get("profile_id", "").strip()
+    if not profile_id or profile_id == "auto":
+        # Auto-match profile based on project name
+        matched = False
+        for p in profile_manager.list_profiles():
+            clean_id = p["id"].replace("_", "").lower()
+            if clean_id in name.lower() or name.lower() in clean_id:
+                profile_id = p["id"]
+                matched = True
+                break
+        if not matched:
+            profile_id = "generic"
+
     try:
-        # Run computer vision pipeline
+        # Run computer vision pipeline using configured strategy
         with VideoProcessor(video_path, auto_rotate_portrait=True) as vp:
-            detector = LevelDetector(vp)
-            levels = detector.scan_video()
-            detector.export_level_assets(levels, levels_dir)
+            detector = profile_manager.get_detector(profile_id, vp)
+            coordinator = LevelCoordinator(vp, detector)
+            levels = coordinator.scan_video()
+            coordinator.export_level_assets(levels, levels_dir)
             
         # Export Excel and CSV reports
         ReportGenerator.generate_reports(levels, proj_dir)
         
         return jsonify({
             "success": True,
+            "profile_used": profile_id,
             "levels_count": len(levels),
             "levels": levels
         })
