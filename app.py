@@ -1,7 +1,9 @@
 import os
 import sys
 import glob
+import base64
 from datetime import datetime
+import cv2
 import pandas as pd
 import requests
 from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
@@ -15,6 +17,23 @@ if sys.platform == "win32":
         sys.stderr.reconfigure(encoding='utf-8')
     except Exception:
         pass
+
+
+def encode_thumbnail_base64(image_path, target_height=320):
+    if not os.path.exists(image_path):
+        return ""
+    try:
+        img = cv2.imread(image_path)
+        if img is None:
+            return ""
+        h, w = img.shape[:2]
+        target_w = int(w * (target_height / h))
+        resized = cv2.resize(img, (target_w, target_height), interpolation=cv2.INTER_AREA)
+        _, buf = cv2.imencode('.jpg', resized, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+        return base64.b64encode(buf).decode('utf-8')
+    except Exception as e:
+        print("Thumbnail error:", e)
+        return ""
 
 
 app = Flask(__name__)
@@ -175,12 +194,34 @@ def export_google_sheet(name):
         df = pd.read_csv(csv_path, encoding="utf-8-sig")
         levels = []
         for _, row in df.iterrows():
+            duration = int(row.get("Thời lượng giải (giây)", 0))
+            if duration <= 25:
+                difficulty = "🟢 Rất dễ (Tutorial)"
+            elif duration <= 90:
+                difficulty = "🟢 Dễ"
+            elif duration <= 150:
+                difficulty = "🟡 Trung bình"
+            elif duration <= 200:
+                difficulty = "🔴 Khó (Thử thách)"
+            else:
+                difficulty = "🟣 Rất khó"
+
+            board_rel = str(row.get("Ảnh bắt đầu màn", ""))
+            vic_rel = str(row.get("Ảnh chiến thắng", ""))
+
+            board_full = os.path.join(proj_dir, "levels", board_rel.replace("/", os.sep))
+            vic_full = os.path.join(proj_dir, "levels", vic_rel.replace("/", os.sep))
+
             levels.append({
                 "level": str(row.get("Level", "")),
                 "start_time": str(row.get("Thời gian bắt đầu", "")),
                 "end_time": str(row.get("Thời gian kết thúc", "")),
-                "duration": int(row.get("Thời lượng giải (giây)", 0)),
-                "status": str(row.get("Trạng thái", "Hoàn thành"))
+                "duration": duration,
+                "difficulty": difficulty,
+                "status": str(row.get("Trạng thái", "Hoàn thành")),
+                "board_base64": encode_thumbnail_base64(board_full),
+                "victory_base64": encode_thumbnail_base64(vic_full),
+                "notes": ""
             })
             
         payload = {
