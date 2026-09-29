@@ -215,7 +215,8 @@ async function submitCreateProject() {
 }
 
 function openGSheetModal() {
-    const saved = localStorage.getItem("gsheet_webhook_url") || "";
+    const defaultUrl = "https://script.google.com/macros/s/AKfycbxPdGXN2gY03inCwNhfYsVoCCxq3cnrum1DsommIgmZtDjVNoac-pCIJiqimMHYtojVSA/exec";
+    const saved = localStorage.getItem("gsheet_webhook_url") || defaultUrl;
     document.getElementById("gsheetWebhookUrl").value = saved;
     const msg = document.getElementById("gsheetResultMsg");
     msg.style.display = "none";
