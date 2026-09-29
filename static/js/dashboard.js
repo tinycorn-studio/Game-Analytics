@@ -215,8 +215,12 @@ async function submitCreateProject() {
 }
 
 function openGSheetModal() {
-    const defaultUrl = "https://script.google.com/macros/s/AKfycbxPdGXN2gY03inCwNhfYsVoCCxq3cnrum1DsommIgmZtDjVNoac-pCIJiqimMHYtojVSA/exec";
-    const saved = localStorage.getItem("gsheet_webhook_url") || defaultUrl;
+    const defaultUrl = "https://script.google.com/macros/s/AKfycbxwg4HKat7VcSaG6ePK-nnqqGBUz5qA8ff2IeEUHE5_BJ8_dHqlYM9EM9BPJW_Y_EbLuQ/exec";
+    let saved = localStorage.getItem("gsheet_webhook_url") || defaultUrl;
+    if (saved.includes("AKfycbxPdGXN2g")) {
+        saved = defaultUrl;
+        localStorage.setItem("gsheet_webhook_url", defaultUrl);
+    }
     document.getElementById("gsheetWebhookUrl").value = saved;
     const msg = document.getElementById("gsheetResultMsg");
     msg.style.display = "none";

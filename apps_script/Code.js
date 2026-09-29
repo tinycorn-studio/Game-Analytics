@@ -1,16 +1,5 @@
 /**
  * Google Apps Script Webhook để nhận dữ liệu và NHÚNG ẢNH MÀN CHƠI từ Game Level Deconstructor Tool
- * 
- * HƯỚNG DẪN CẬP NHẬT TRONG 1 PHÚT:
- * 1. Mở file Google Sheet của bạn -> Tiện ích mở rộng (Extensions) -> Apps Script.
- * 2. Xóa toàn bộ mã cũ trong Code.gs, dán toàn bộ đoạn mã mới này vào.
- * 3. Bấm nút 💾 Lưu (Ctrl + S).
- * 4. Bấm nút "Triển khai" (Deploy) ở góc trên bên phải:
- *    - Chọn "Quản lý bản triển khai" (Manage deployments).
- *    - Bấm vào biểu tượng cây bút (Chỉnh sửa - Edit).
- *    - Tại mục "Phiên bản" (Version), chọn "Phiên bản mới" (New version).
- *    - Bấm "Triển khai" (Deploy).
- * 5. Giờ bạn bấm nút "Xuất Google Sheet" trên Tool là ảnh sẽ tự động nhúng vào từng ô tính!
  */
 
 function doPost(e) {
@@ -26,23 +15,15 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var gameName = data.game_name || "Game_Analysis";
     
-    // 1. Quản lý thư mục lưu trữ ảnh trên Google Drive của bạn
-    var rootFolderName = "Game_Analytics_Screenshots";
-    var rootFolders = DriveApp.getFoldersByName(rootFolderName);
-    var rootFolder = rootFolders.hasNext() ? rootFolders.next() : DriveApp.createFolder(rootFolderName);
-    
-    var gameFolders = rootFolder.getFoldersByName(gameName);
-    var gameFolder = gameFolders.hasNext() ? gameFolders.next() : rootFolder.createFolder(gameName);
-    
-    // 2. Tìm hoặc tạo Sheet theo tên game
+    // 1. Tìm hoặc tạo Sheet theo tên game
     var sheet = ss.getSheetByName(gameName);
     if (!sheet) {
       sheet = ss.insertSheet(gameName);
     } else {
-      sheet.clear(); // Xóa cũ để cập nhật mới
+      sheet.clear(); // Xóa dữ liệu cũ để cập nhật mới
     }
     
-    // 3. Tiêu đề các cột
+    // 2. Tiêu đề các cột
     var headers = [
       "Màn (Level)",
       "Ảnh Khởi Đầu (Board Start)",
@@ -66,7 +47,7 @@ function doPost(e) {
     sheet.setRowHeight(1, 38);
     sheet.setFrozenRows(1); // Cố định tiêu đề
     
-    // Cài đặt độ rộng cột chuẩn hiển thị ảnh
+    // Cài đặt độ rộng cột chuẩn hiển thị ảnh điện thoại
     sheet.setColumnWidth(1, 95);  // Level
     sheet.setColumnWidth(2, 120); // Ảnh Board
     sheet.setColumnWidth(3, 120); // Ảnh Victory
@@ -85,39 +66,20 @@ function doPost(e) {
         var lvl = levels[i];
         var rowNum = i + 2;
         
-        // 4. Lưu ảnh lên Google Drive và tạo công thức nhúng ảnh
+        // Tạo công thức nhúng ảnh trực tiếp vào ô tính
         var boardFormula = "-";
-        if (lvl.board_base64) {
-          try {
-            var bBlob = Utilities.newBlob(Utilities.base64Decode(lvl.board_base64), "image/jpeg", gameName + "_" + lvl.level + "_board.jpg");
-            var bFile = gameFolder.createFile(bBlob);
-            bFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-            var bId = bFile.getId();
-            var bThumb = "https://lh3.googleusercontent.com/d/" + bId;
-            var bView = "https://drive.google.com/file/d/" + bId + "/view";
-            boardFormula = '=HYPERLINK("' + bView + '", IMAGE("' + bThumb + '"))';
-          } catch (e1) {
-            boardFormula = "Lỗi ảnh";
-          }
+        if (lvl.board_url) {
+          boardFormula = '=HYPERLINK("' + lvl.board_url + '", IMAGE("' + lvl.board_url + '"))';
         }
         
         var victoryFormula = "-";
-        if (lvl.victory_base64) {
-          try {
-            var vBlob = Utilities.newBlob(Utilities.base64Decode(lvl.victory_base64), "image/jpeg", gameName + "_" + lvl.level + "_victory.jpg");
-            var vFile = gameFolder.createFile(vBlob);
-            vFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-            var vId = vFile.getId();
-            var vThumb = "https://lh3.googleusercontent.com/d/" + vId;
-            var vView = "https://drive.google.com/file/d/" + vId + "/view";
-            victoryFormula = '=HYPERLINK("' + vView + '", IMAGE("' + vThumb + '"))';
-          } catch (e2) {
-            victoryFormula = "Lỗi ảnh";
-          }
+        if (lvl.victory_url) {
+          victoryFormula = '=HYPERLINK("' + lvl.victory_url + '", IMAGE("' + lvl.victory_url + '"))';
         }
         
         // Ghi dữ liệu dòng
         sheet.getRange(rowNum, 1).setValue(lvl.level || ("Level " + (i + 1)));
+        
         if (boardFormula.indexOf("=") === 0) {
           sheet.getRange(rowNum, 2).setFormula(boardFormula);
         } else {

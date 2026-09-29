@@ -212,6 +212,9 @@ def export_google_sheet(name):
             board_full = os.path.join(proj_dir, "levels", board_rel.replace("/", os.sep))
             vic_full = os.path.join(proj_dir, "levels", vic_rel.replace("/", os.sep))
 
+            board_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{board_rel}"
+            victory_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{vic_rel}"
+
             levels.append({
                 "level": str(row.get("Level", "")),
                 "start_time": str(row.get("Thời gian bắt đầu", "")),
@@ -219,6 +222,8 @@ def export_google_sheet(name):
                 "duration": duration,
                 "difficulty": difficulty,
                 "status": str(row.get("Trạng thái", "Hoàn thành")),
+                "board_url": board_url,
+                "victory_url": victory_url,
                 "board_base64": encode_thumbnail_base64(board_full),
                 "victory_base64": encode_thumbnail_base64(vic_full),
                 "notes": ""
