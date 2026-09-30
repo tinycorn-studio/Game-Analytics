@@ -11,6 +11,8 @@ from core.video_processor import VideoProcessor
 from core.level_detector import LevelCoordinator, LevelDetector
 from core.report_generator import ReportGenerator
 from core.profile_manager import ProfileManager
+from core.game_design_aggregator import GameDesignAggregator
+from core.analyzers.base_analyzer import AnalyzerResult
 
 profile_manager = ProfileManager()
 
@@ -165,19 +167,41 @@ def analyze_video(name):
     try:
         # Run computer vision pipeline using configured strategy
         with VideoProcessor(video_path, auto_rotate_portrait=True) as vp:
+            vp.project_dir = proj_dir
             detector = profile_manager.get_detector(profile_id, vp)
             coordinator = LevelCoordinator(vp, detector)
             levels = coordinator.scan_video()
             coordinator.export_level_assets(levels, levels_dir)
-            
-        # Export Excel and CSV reports
+
+            # Run complete Game Design Analysis Suite (SOLID Aggregator)
+            aggregator = GameDesignAggregator()
+            gd_results = aggregator.run_all(vp, levels, detector)
+
+        # Export CSV and multi-tab Excel
         ReportGenerator.generate_reports(levels, proj_dir)
-        
+        aggregator.export_excel(os.path.join(proj_dir, "report.xlsx"), gd_results)
+
+        # Cache gd_results as JSON for fast access & multi-tab viewing
+        import json
+        cache_file = os.path.join(proj_dir, "game_design_results.json")
+        cache_data = {}
+        for s_name, res in gd_results.items():
+            cache_data[s_name] = {
+                "display_title": res.display_title,
+                "headers": res.headers,
+                "rows": res.rows,
+                "column_widths": res.column_widths,
+                "summary_metrics": res.summary_metrics
+            }
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(cache_data, f, ensure_ascii=False, indent=2)
+
         return jsonify({
             "success": True,
             "profile_used": profile_id,
             "levels_count": len(levels),
-            "levels": levels
+            "levels": levels,
+            "game_design_sheets": list(gd_results.keys())
         })
     except Exception as e:
         import traceback
@@ -186,8 +210,15 @@ def analyze_video(name):
 
 @app.route("/project/<name>/level_image/<path:filename>")
 def serve_level_image(name, filename):
-    levels_dir = os.path.join(PROJECTS_DIR, name, "levels")
-    resp = send_from_directory(levels_dir, filename)
+    proj_dir = os.path.join(PROJECTS_DIR, name)
+    if filename.startswith("boosters/"):
+        rel_fn = filename.replace("boosters/", "").replace("boosters\\", "")
+        target_dir = os.path.join(proj_dir, "boosters")
+    else:
+        rel_fn = filename
+        target_dir = os.path.join(proj_dir, "levels")
+        
+    resp = send_from_directory(target_dir, rel_fn)
     resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     resp.headers["Pragma"] = "no-cache"
     resp.headers["Expires"] = "0"
@@ -202,6 +233,16 @@ def download_report(name, fmt):
     elif fmt == "csv":
         file_path = os.path.join(proj_dir, "report.csv")
         return send_file(file_path, as_attachment=True, download_name=f"{name}_level_matrix.csv")
+
+@app.route("/api/project/<name>/game_design_sheets")
+def get_game_design_sheets(name):
+    proj_dir = os.path.join(PROJECTS_DIR, name)
+    cache_file = os.path.join(proj_dir, "game_design_results.json")
+    if os.path.exists(cache_file):
+        import json
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return jsonify({"success": True, "sheets": json.load(f)})
+    return jsonify({"success": False, "error": "Chưa có dữ liệu phân tích Game Design."}), 404
 
 @app.route("/api/project/<name>/open_folder", methods=["POST"])
 def open_project_folder(name):
@@ -232,53 +273,46 @@ def export_google_sheet(name):
         return jsonify({"success": False, "error": "Chưa có dữ liệu phân tích. Hãy chạy phân tích trước!"}), 400
         
     try:
-        df = pd.read_csv(csv_path, encoding="utf-8-sig")
-        levels = []
+        cache_file = os.path.join(proj_dir, "game_design_results.json")
+        aggregator = GameDesignAggregator()
         cache_buster = int(datetime.now().timestamp())
-        for _, row in df.iterrows():
-            duration = int(row.get("Thời lượng giải (giây)", 0))
-            if duration <= 25:
-                difficulty = "🟢 Rất dễ (Tutorial)"
-            elif duration <= 90:
-                difficulty = "🟢 Dễ"
-            elif duration <= 150:
-                difficulty = "🟡 Trung bình"
-            elif duration <= 200:
-                difficulty = "🔴 Khó (Thử thách)"
-            else:
-                difficulty = "🟣 Rất khó"
-
-            board_rel = str(row.get("Ảnh bắt đầu màn", ""))
-            vic_rel = str(row.get("Ảnh chiến thắng", ""))
-
-            board_full = os.path.join(proj_dir, "levels", board_rel.replace("/", os.sep))
-            vic_full = os.path.join(proj_dir, "levels", vic_rel.replace("/", os.sep))
-
-            board_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{board_rel}?v={cache_buster}"
-            victory_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{vic_rel}?v={cache_buster}"
-
-            levels.append({
-                "level": str(row.get("Level", "")),
-                "start_time": str(row.get("Thời gian bắt đầu", "")),
-                "end_time": str(row.get("Thời gian kết thúc", "")),
-                "duration": duration,
-                "difficulty": difficulty,
-                "status": str(row.get("Trạng thái", "Hoàn thành")),
-                "board_url": board_url,
-                "victory_url": victory_url,
-                "board_base64": encode_thumbnail_base64(board_full),
-                "victory_base64": encode_thumbnail_base64(vic_full),
-                "notes": ""
-            })
-            
-        payload = {
-            "game_name": name,
-            "exported_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "levels": levels
-        }
+        github_base = "https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main"
         
+        if os.path.exists(cache_file):
+            import json
+            with open(cache_file, "r", encoding="utf-8") as f:
+                cached_data = json.load(f)
+            results = {}
+            for s_name, s_info in cached_data.items():
+                results[s_name] = AnalyzerResult(
+                    sheet_name=s_name,
+                    display_title=s_info.get("display_title", s_name),
+                    headers=s_info.get("headers", []),
+                    rows=s_info.get("rows", []),
+                    column_widths=s_info.get("column_widths", {}),
+                    summary_metrics=s_info.get("summary_metrics", {})
+                )
+            payload = aggregator.build_webhook_payload(name, results, github_base, cache_buster)
+        else:
+            df = pd.read_csv(csv_path, encoding="utf-8-sig")
+            levels = []
+            for _, row in df.iterrows():
+                duration = int(row.get("Thời lượng giải (giây)", 0))
+                levels.append({
+                    "level": int(str(row.get("Level", "1")).replace("Level ", "")),
+                    "start_time_str": str(row.get("Thời gian bắt đầu", "")),
+                    "end_time_str": str(row.get("Thời gian kết thúc", "")),
+                    "duration_seconds": duration,
+                    "board_image_rel": str(row.get("Ảnh bắt đầu màn", "")),
+                    "victory_image_rel": str(row.get("Ảnh chiến thắng", "")),
+                    "status": str(row.get("Trạng thái", "Hoàn thành")),
+                    "notes": ""
+                })
+            results = aggregator.run_all(None, levels)
+            payload = aggregator.build_webhook_payload(name, results, github_base, cache_buster)
+
         # Google Apps Script web apps return a 302 redirect on POST, requests follows it
-        resp = requests.post(webhook_url, json=payload, timeout=30)
+        resp = requests.post(webhook_url, json=payload, timeout=60)
         if resp.status_code != 200:
             return jsonify({
                 "success": False,

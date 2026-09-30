@@ -1,0 +1,373 @@
+{
+  "Level Matrix": {
+    "display_title": "Ma Trận Màn Chơi (Level Matrix)",
+    "headers": [
+      "Màn (Level)",
+      "Ảnh Khởi Đầu (Board Start)",
+      "Ảnh Chiến Thắng (Victory / Reward)",
+      "Thời Gian Bắt Đầu",
+      "Thời Gian Thắng",
+      "Thời Lượng Giải (s)",
+      "Độ Khó (Pacing)",
+      "Trạng Thái",
+      "Ghi Chú Game Designer"
+    ],
+    "rows": [
+      [
+        "Level 01",
+        "level_01/board_start.jpg",
+        "level_01/victory.jpg",
+        "00:24",
+        "00:32",
+        7,
+        "🟢 Rất dễ (Tutorial)",
+        "Hoàn thành",
+        ""
+      ],
+      [
+        "Level 02",
+        "level_02/board_start.jpg",
+        "level_02/victory.jpg",
+        "00:44",
+        "02:51",
+        126,
+        "🟡 Trung bình",
+        "Hoàn thành",
+        ""
+      ],
+      [
+        "Level 03",
+        "level_03/board_start.jpg",
+        "level_03/victory.jpg",
+        "03:01",
+        "05:16",
+        134,
+        "🟡 Trung bình",
+        "Hoàn thành",
+        ""
+      ],
+      [
+        "Level 04",
+        "level_04/board_start.jpg",
+        "level_04/victory.jpg",
+        "05:23",
+        "08:11",
+        167,
+        "🔴 Khó (Thử thách)",
+        "Hoàn thành",
+        ""
+      ],
+      [
+        "Level 05",
+        "level_05/board_start.jpg",
+        "level_05/victory.jpg",
+        "08:19",
+        "11:02",
+        162,
+        "🔴 Khó (Thử thách)",
+        "Hoàn thành",
+        ""
+      ],
+      [
+        "Level 06",
+        "level_06/board_start.jpg",
+        "level_06/victory.jpg",
+        "11:09",
+        "14:11",
+        181,
+        "🔴 Khó (Thử thách)",
+        "Hoàn thành",
+        ""
+      ]
+    ],
+    "column_widths": {
+      "1": 95,
+      "2": 120,
+      "3": 120,
+      "4": 95,
+      "5": 95,
+      "6": 105,
+      "7": 150,
+      "8": 110,
+      "9": 260
+    },
+    "summary_metrics": {
+      "total_levels": 6,
+      "total_time_seconds": 777
+    }
+  },
+  "Mechanics & FTUE": {
+    "display_title": "Lộ Trình Cơ Chế & Tân Thủ (Mechanics & FTUE)",
+    "headers": [
+      "Màn (Level)",
+      "Cơ Chế / Chướng Ngại Vật",
+      "Ảnh Minh Họa Hướng Dẫn",
+      "Lời Thoại Hướng Dẫn (OCR)",
+      "Phân Loại FTUE",
+      "Quy Tắc Tương Tác",
+      "Tác Động Game Design"
+    ],
+    "rows": [
+      [
+        "Level 01",
+        "🎮 Di Chuyển Cơ Bản (Core Match Mechanics)",
+        "level_01/tutorial_ftue.jpg",
+        "Chạm cá đưa vào bình cùng loại để hoàn thành mục tiêu",
+        "🎯 Bắt buộc (Forced Tutorial)",
+        "Chọn cá trên bàn cờ di chuyển vào các bình rỗng phía trên",
+        "FTUE làm quen luật chơi cốt lõi trong < 10 giây, giảm thiểu Drop-off ngày đầu"
+      ],
+      [
+        "Level 02",
+        "🫧 Bong Bóng Khóa (Locked Bubble)",
+        "level_02/tutorial_ftue.jpg",
+        "Whenbubblespop,new Tap anywhere to continue",
+        "🎯 Bắt buộc (Forced Tutorial - Bàn tay chỉ)",
+        "Thu thập đủ 3 cá cùng màu để giải phóng cá con bị giam bên trong",
+        "Cơ chế giải đố phân tầng (Layered Goal), kích thích tò mò và cảm giác thỏa mãn khi nổ bóng"
+      ],
+      [
+        "Level 03",
+        "❄️ Khối Băng (Ice Block Obstacle)",
+        "level_03/tutorial_ftue.jpg",
+        "Click on the adjacent fish three timesto defrosttheiceblock.",
+        "💡 Banner Gợi Ý Ngữ Cảnh (Contextual Tooltip)",
+        "Click cá cùng màu lân cận 3 lần để rã đông khối băng",
+        "Chướng ngại vật khóa ô, buộc người chơi gom nhóm xung quanh, tăng số nước đi và chiều sâu tính toán"
+      ],
+      [
+        "Level 04",
+        "❄️ Khối Băng (Ice Block Obstacle)",
+        "level_04/tutorial_ftue.jpg",
+        "Click on the adjacent fish three times to defrost the ice block.",
+        "💡 Banner Gợi Ý Ngữ Cảnh (Contextual Tooltip)",
+        "Click cá cùng màu lân cận 3 lần để rã đông khối băng",
+        "Chướng ngại vật khóa ô, buộc người chơi gom nhóm xung quanh, tăng số nước đi và chiều sâu tính toán"
+      ],
+      [
+        "Level 05",
+        "📈 Tăng Mật Độ & Thử Thách (Board Density Scaling)",
+        "level_05/board_start.jpg",
+        "Không có hướng dẫn (Màn chơi tiêu chuẩn)",
+        "👁️ Tự do (No Tutorial)",
+        "Tự do tính toán giải đố với bố cục mở rộng",
+        "Thử thách kỹ năng người chơi với nhịp độ dồn dập hơn, chuẩn bị cho màn khó tiếp theo"
+      ],
+      [
+        "Level 06",
+        "❄️ Khối Băng (Ice Block Obstacle)",
+        "level_06/tutorial_ftue.jpg",
+        "Click on the adjacent fish three times to defrost the ice block.",
+        "💡 Banner Gợi Ý Ngữ Cảnh (Contextual Tooltip)",
+        "Click cá cùng màu lân cận 3 lần để rã đông khối băng",
+        "Chướng ngại vật khóa ô, buộc người chơi gom nhóm xung quanh, tăng số nước đi và chiều sâu tính toán"
+      ]
+    ],
+    "column_widths": {
+      "1": 95,
+      "2": 240,
+      "3": 120,
+      "4": 280,
+      "5": 190,
+      "6": 280,
+      "7": 320
+    },
+    "summary_metrics": {}
+  },
+  "Boosters & Unlocks": {
+    "display_title": "Trợ Thủ & Mở Khóa Tính Năng (Boosters & Unlocks)",
+    "headers": [
+      "Tên Vật Phẩm / Tính Năng",
+      "Ảnh Icon Trợ Thủ",
+      "Màn Mở Khóa",
+      "Thời Điểm Mở Khóa",
+      "Phân Loại",
+      "Công Dụng Cứu Nguy (Bailout Utility)",
+      "Đánh Giá Áp Lực Tiền Tệ (Monetization Pressure)"
+    ],
+    "rows": [
+      [
+        "🏸 Vợt Bắt Cá (Net Booster)",
+        "boosters/booster_net.jpg",
+        "Level 03",
+        "Level 03 (03:01)",
+        "In-game Active Booster",
+        "Thu thập ngay 1 nhóm cá bất kỳ mà không cần chờ bình rỗng. Cứu người chơi khi khay chờ sắp đầy.",
+        "🟢 Áp lực thấp: Tặng miễn phí ở Lv.3 để kích thích thói quen dùng item (Habit Loop)."
+      ],
+      [
+        "🧹 Cây Cọ Quét (Clear Brush)",
+        "boosters/booster_clear.jpg",
+        "Level 05",
+        "Level 05 (08:19)",
+        "Emergency Bailout Booster",
+        "Quét dọn tức thời thanh chờ hoặc giải phóng 1 khối băng tắc nghẽn. Tránh bàn thua cận kề (Loss Aversion).",
+        "🟡 Áp lực trung bình: Giới thiệu ở Lv.5 khi các màn bắt đầu có 2 khối băng, bán gói cứu nguy ($0.99)."
+      ],
+      [
+        "🏺 Bình Cá Dự Phòng (Extra Jar Slot)",
+        "boosters/booster_extra_slot.jpg",
+        "Level 07",
+        "Level 07 (Dự kiến mở khóa)",
+        "Permanent / Session Upgrade",
+        "Mở rộng không gian phân loại thêm 1 bình nước, giải tỏa áp lực sắp xếp cho các màn nhiều chủng loại cá.",
+        "🔴 Áp lực cao: Mở khóa ở Lv.7, đây là điểm chốt chặn (Paywall) bán gói Starter Bundle hoặc xem Video Ads thưởng."
+      ]
+    ],
+    "column_widths": {
+      "1": 240,
+      "2": 120,
+      "3": 110,
+      "4": 180,
+      "5": 200,
+      "6": 350,
+      "7": 350
+    },
+    "summary_metrics": {
+      "boosters_count": 3
+    }
+  },
+  "Pacing & Difficulty": {
+    "display_title": "Nhịp Độ & Đường Cong Độ Khó (Pacing & Difficulty)",
+    "headers": [
+      "Màn (Level)",
+      "Thời Lượng Giải (s)",
+      "Độ Lệch Chuẩn (%)",
+      "Nhịp Độ Tâm Lý (Pacing Role)",
+      "Chỉ Số Căng Thẳng (Tension Tier)",
+      "Nguy Cơ Bỏ Game (Choke Point Risk)",
+      "Khuyến Nghị Game Designer (Balancing Advice)"
+    ],
+    "rows": [
+      [
+        "Level 01",
+        7,
+        "5%",
+        "🟢 Khởi Động (Tutorial / Warm-up)",
+        "1/5 (Thư giãn tuyệt đối)",
+        "✅ Rất Thấp: FTUE dẫn dắt nhẹ nhàng",
+        "Giữ nguyên luồng chơi, không nên tăng thêm chướng ngại vật."
+      ],
+      [
+        "Level 02",
+        126,
+        "97%",
+        "⚡ Đẩy Cao Trào (Tension Spike)",
+        "3.5/5 (Tập trung cao độ)",
+        "🟡 Trung bình: Bắt đầu tạo áp lực phân vân",
+        "Theo dõi thời gian suy nghĩ, kích thích người chơi nhìn vào thanh Booster."
+      ],
+      [
+        "Level 03",
+        134,
+        "103%",
+        "⚖️ Tiến Trình Tiêu Chuẩn (Steady Flow)",
+        "3/5 (Cân bằng)",
+        "✅ An Toàn: Nhịp chơi ổn định",
+        "Độ khó vừa vặn với kỹ năng người chơi tích lũy."
+      ],
+      [
+        "Level 04",
+        167,
+        "129%",
+        "🔥 Thử Thách Cực Hạn (Peak Challenge / Boss Feel)",
+        "4.5/5 (Áp lực cao độ)",
+        "⚠️ NGUY CƠ CAO (Choke Point / Paywall)",
+        "Điểm ép nạp vật phẩm ($0.99) hoặc xem Ads hồi sinh. Cần tặng 1 Booster dùng thử trước đó."
+      ],
+      [
+        "Level 05",
+        162,
+        "125%",
+        "🔥 Thử Thách Cực Hạn (Peak Challenge / Boss Feel)",
+        "4.5/5 (Áp lực cao độ)",
+        "⚠️ NGUY CƠ CAO (Choke Point / Paywall)",
+        "Điểm ép nạp vật phẩm ($0.99) hoặc xem Ads hồi sinh. Cần tặng 1 Booster dùng thử trước đó."
+      ],
+      [
+        "Level 06",
+        181,
+        "140%",
+        "🔥 Thử Thách Cực Hạn (Peak Challenge / Boss Feel)",
+        "4.5/5 (Áp lực cao độ)",
+        "⚠️ NGUY CƠ CAO (Choke Point / Paywall)",
+        "Điểm ép nạp vật phẩm ($0.99) hoặc xem Ads hồi sinh. Cần tặng 1 Booster dùng thử trước đó."
+      ]
+    ],
+    "column_widths": {
+      "1": 95,
+      "2": 110,
+      "3": 110,
+      "4": 250,
+      "5": 180,
+      "6": 280,
+      "7": 350
+    },
+    "summary_metrics": {
+      "mean_duration": 129.5,
+      "choke_points": [
+        "Level 04",
+        "Level 05",
+        "Level 06"
+      ]
+    }
+  },
+  "Executive Summary": {
+    "display_title": "Tổng Kết & Đề Xuất Cân Bằng Game (Executive Summary)",
+    "headers": [
+      "Hạng Mục Phân Tích (Category)",
+      "Chỉ Số Thực Tế (Observed Metric)",
+      "Chuẩn Mực Casual/Puzzle (Industry Benchmark)",
+      "Ý Nghĩa & Khuyến Nghị Thực Chiến (Actionable Takeaway)"
+    ],
+    "rows": [
+      [
+        "⏱️ Quy Mô Phiên Chơi (Session Length)",
+        "12.9 phút (777s) cho 6 màn",
+        "10 - 15 phút / session tiêu chuẩn cho Casual/Puzzle Mobile",
+        "Thời lượng session lý tưởng để tiêu hao năng lượng (Energy loop) và kích hoạt quảng cáo Interstitial sau mỗi 2-3 màn."
+      ],
+      [
+        "⏳ Thời Lượng Trung Bình (Avg Level Duration)",
+        "129.5 giây / màn (~2.2 phút)",
+        "60s - 120s / level đối với game phân loại / match-3",
+        "Pacing chuẩn mực: người chơi có đủ thời gian tư duy mà không bị cảm giác lê thê kéo dài."
+      ],
+      [
+        "🧩 Nhịp Giới Thiệu Cơ Chế (Novelty Pacing)",
+        "Màn 1 (Cơ bản) ➔ Màn 2 (Bong bóng) ➔ Màn 4 (Khối băng)",
+        "1 cơ chế mới mỗi 2-3 màn trong 10 màn đầu đời (D1 FTUE)",
+        "Nhịp độ mở tính năng mới rất mượt: 2 màn đầu làm quen, màn 3 xả hơi, màn 4 thử thách thực sự."
+      ],
+      [
+        "⚡ Hệ Thống Trợ Thủ (Booster Rollout)",
+        "Mở khóa đều đặn: Lv.3 (Net) ➔ Lv.5 (Clear) ➔ Lv.7 (Slot)",
+        "Mở khóa trước các màn thử thách để hình thành thói quen dùng item",
+        "Chiến lược thông minh: Tặng Vợt ở Lv.3 ngay trước Màn 4 (màn khó đầu tiên), tạo thói quen dùng đồ giải cứu."
+      ],
+      [
+        "💰 Điểm Chạm Ép Nạp (Monetization Trigger Points)",
+        "Màn 4 (167s) và Màn 6 (181s) là hai điểm nghẽn (Choke Points)",
+        "Choke point xuất hiện ở màn 4-6 có tỷ lệ chuyển đổi nạp tiền cao nhất",
+        "Vị trí vàng để pop-up gói ưu đãi Starter Bundle ($0.99) hoặc hiển thị nút 'Hồi Sinh / Thêm Nước Đi' giá 35 Coins."
+      ],
+      [
+        "💡 Đề Xuất Cải Tiến Cho Studio Của Mình",
+        "Game đối thủ chưa có chuỗi thắng (Win Streak) và Pre-game Booster",
+        "Tính năng Win Streak (Royal Match) giúp tăng Retention D7 +15%",
+        "Studio nên bổ sung tính năng 'Chuỗi Thắng Bão Biển': Thắng liên tiếp sẽ được thả sẵn 1 bình cá thu thập trước khi vào màn."
+      ]
+    ],
+    "column_widths": {
+      "1": 250,
+      "2": 240,
+      "3": 300,
+      "4": 420
+    },
+    "summary_metrics": {
+      "session_minutes": 12.9,
+      "avg_level_duration": 129.5,
+      "levels_analyzed": 6
+    }
+  }
+}

@@ -1,31 +1,20 @@
 /**
  * Google Apps Script Webhook để nhận dữ liệu và NHÚNG ẢNH MÀN CHƠI từ Game Level Deconstructor Tool
+ * Hỗ trợ xuất Đa Bảng Tính (Multi-Tab Game Deconstruction Suite):
+ * 1. Level Matrix
+ * 2. Mechanics & FTUE
+ * 3. Boosters & Unlocks
+ * 4. Pacing & Difficulty
+ * 5. Executive Summary
  */
 
 function doGet(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("FishSortPuzzle");
-    if (!sheet) {
-      return ContentService.createTextOutput(JSON.stringify({ error: "Sheet not found" })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (e && e.parameter && e.parameter.test) {
-      var url1 = "https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/FishSortPuzzle/levels/level_01/board_start.jpg";
-      var url2 = "https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/FishSortPuzzle/levels/level_01/victory.jpg";
-      
-      // Test 1: Just =IMAGE(url)
-      sheet.getRange("B2").setFormula('=IMAGE("' + url1 + '")');
-      
-      // Test 2: newCellImage()
-      var cellImg = SpreadsheetApp.newCellImage().setSourceUrl(url2).build();
-      sheet.getRange("C2").setValue(cellImg);
-    }
-    
-    var range = sheet.getRange(1, 1, Math.min(sheet.getLastRow(), 8), sheet.getLastColumn());
     return ContentService.createTextOutput(JSON.stringify({
-      values: range.getDisplayValues(),
-      formulas: range.getFormulas()
+      status: "active",
+      spreadsheet_name: ss.getName(),
+      sheets: ss.getSheets().map(function(s) { return s.getName(); })
     })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({ error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
@@ -44,16 +33,39 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var gameName = data.game_name || "Game_Analysis";
-    
-    // 1. Tìm hoặc tạo Sheet theo tên game
+
+    // -------------------------------------------------------------
+    // CHẾ ĐỘ 1: XUẤT ĐA TAB (MULTI-TAB GAME DECONSTRUCTION SUITE)
+    // -------------------------------------------------------------
+    if (data.multi_tab && data.sheets && data.sheets.length > 0) {
+      for (var sIdx = 0; sIdx < data.sheets.length; sIdx++) {
+        var sData = data.sheets[sIdx];
+        var tabTitle = gameName + " - " + sData.sheet_name;
+        if (tabTitle.length > 50) {
+          tabTitle = tabTitle.substring(0, 50);
+        }
+
+        renderCustomSheet(ss, tabTitle, sData.headers, sData.rows, sData.column_widths);
+      }
+
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Đã xuất thành công " + data.sheets.length + " tabs phân tích Game Design lên Google Sheet!",
+        game_name: gameName,
+        sheet_url: ss.getUrl()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // -------------------------------------------------------------
+    // CHẾ ĐỘ 2: TƯƠNG THÍCH NGƯỢC (LEGACY SINGLE SHEET LEVEL MATRIX)
+    // -------------------------------------------------------------
     var sheet = ss.getSheetByName(gameName);
     if (!sheet) {
       sheet = ss.insertSheet(gameName);
     } else {
-      sheet.clear(); // Xóa dữ liệu cũ để cập nhật mới
+      sheet.clear();
     }
-    
-    // 2. Tiêu đề các cột
+
     var headers = [
       "Màn (Level)",
       "Ảnh Khởi Đầu (Board Start)",
@@ -66,8 +78,7 @@ function doPost(e) {
       "Ghi Chú Game Designer"
     ];
     sheet.appendRow(headers);
-    
-    // Định dạng dòng Tiêu đề
+
     var headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setBackground("#1e3a8a");
     headerRange.setFontColor("#ffffff");
@@ -75,9 +86,8 @@ function doPost(e) {
     headerRange.setHorizontalAlignment("center");
     headerRange.setVerticalAlignment("middle");
     sheet.setRowHeight(1, 38);
-    sheet.setFrozenRows(1); // Cố định tiêu đề
-    
-    // Cài đặt độ rộng cột chuẩn hiển thị ảnh điện thoại
+    sheet.setFrozenRows(1);
+
     sheet.setColumnWidth(1, 95);  // Level
     sheet.setColumnWidth(2, 120); // Ảnh Board
     sheet.setColumnWidth(3, 120); // Ảnh Victory
@@ -87,23 +97,15 @@ function doPost(e) {
     sheet.setColumnWidth(7, 150); // Độ khó
     sheet.setColumnWidth(8, 110); // Trạng thái
     sheet.setColumnWidth(9, 260); // Ghi chú GD
-    
-    // Xóa tab thử nghiệm nếu có
-    var testSheet = ss.getSheetByName("TestGame");
-    if (testSheet) {
-      try { ss.deleteSheet(testSheet); } catch (eIgnore) {}
-    }
-    
+
     var levels = data.levels || [];
     var rowCount = levels.length;
-    
+
     if (rowCount > 0) {
-      // 1. Chuẩn bị mảng 2 chiều cho bảng dữ liệu và ảnh nhúng Native In-Cell
       var tableValues = [];
       for (var i = 0; i < rowCount; i++) {
         var lvl = levels[i];
-        
-        // Tạo đối tượng ảnh nhúng trực tiếp (Native In-Cell Image)
+
         var boardImg = "-";
         if (lvl.board_url) {
           try {
@@ -115,7 +117,7 @@ function doPost(e) {
             boardImg = "-";
           }
         }
-        
+
         var victoryImg = "-";
         if (lvl.victory_url) {
           try {
@@ -127,7 +129,7 @@ function doPost(e) {
             victoryImg = "-";
           }
         }
-        
+
         tableValues.push([
           lvl.level || ("Level " + (i + 1)),
           boardImg,
@@ -140,38 +142,119 @@ function doPost(e) {
           lvl.notes || ""
         ]);
       }
-      
-      // Ghi toàn bộ dữ liệu & ảnh vào bảng trong 1 thao tác (Batch setValues)
+
       var dataRange = sheet.getRange(2, 1, rowCount, headers.length);
       dataRange.setValues(tableValues);
-      
-      // Định dạng số nguyên cho cột 6 (Thời lượng giải) để không bao giờ bị nhảy sang dạng Ngày Tháng
+
       sheet.getRange(2, 6, rowCount, 1).setNumberFormat("0");
-      sheet.getRange(2, 4, rowCount, 2).setNumberFormat("@"); // Cột 4, 5 dạng text
-      
-      // Chỉnh chiều cao hàng 110px để hiển thị ảnh thumbnail điện thoại rõ nét
+      sheet.getRange(2, 4, rowCount, 2).setNumberFormat("@");
       sheet.setRowHeights(2, rowCount, 110);
-      
-      // Căn giữa & kẻ viền bảng
+
       dataRange.setHorizontalAlignment("center");
       dataRange.setVerticalAlignment("middle");
       dataRange.setBorder(true, true, true, true, true, true, "#cbd5e1", SpreadsheetApp.BorderStyle.SOLID);
-      
-      // Cột ghi chú canh lề trái
       sheet.getRange(2, 9, rowCount, 1).setHorizontalAlignment("left");
     }
-    
+
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       message: "Đã nhúng toàn bộ ảnh màn chơi và dữ liệu thành công lên Google Sheet!",
       sheet_name: gameName,
       sheet_url: ss.getUrl()
     })).setMimeType(ContentService.MimeType.JSON);
-    
+
   } catch (err) {
     return ContentService.createTextOutput(JSON.stringify({
       status: "error",
       message: err.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/**
+ * Hàm chung render một Sheet chuyên sâu bất kỳ với định dạng chuẩn
+ */
+function renderCustomSheet(ss, tabTitle, headers, rows, colWidths) {
+  var sheet = ss.getSheetByName(tabTitle);
+  if (!sheet) {
+    sheet = ss.insertSheet(tabTitle);
+  } else {
+    sheet.clear();
+  }
+
+  if (!headers || headers.length === 0) return;
+
+  sheet.appendRow(headers);
+  var headerRange = sheet.getRange(1, 1, 1, headers.length);
+  headerRange.setBackground("#1e3a8a");
+  headerRange.setFontColor("#ffffff");
+  headerRange.setFontWeight("bold");
+  headerRange.setHorizontalAlignment("center");
+  headerRange.setVerticalAlignment("middle");
+  sheet.setRowHeight(1, 38);
+  sheet.setFrozenRows(1);
+
+  // Set column widths if provided
+  if (colWidths) {
+    for (var colIdx in colWidths) {
+      try {
+        sheet.setColumnWidth(parseInt(colIdx), parseInt(colWidths[colIdx]));
+      } catch (eW) {}
+    }
+  }
+
+  if (!rows || rows.length === 0) return;
+
+  var hasImage = false;
+  var tableValues = [];
+
+  for (var r = 0; r < rows.length; r++) {
+    var rowData = rows[r];
+    var formattedRow = [];
+
+    for (var c = 0; c < rowData.length; c++) {
+      var cell = rowData[c];
+      if (cell && typeof cell === "object" && cell.type === "image") {
+        hasImage = true;
+        try {
+          var img = SpreadsheetApp.newCellImage()
+            .setSourceUrl(cell.url)
+            .setAltTextTitle("Image")
+            .build();
+          formattedRow.push(img);
+        } catch (eImg) {
+          formattedRow.push("-");
+        }
+      } else if (cell && typeof cell === "object" && cell.type === "text") {
+        formattedRow.push(cell.value);
+      } else {
+        formattedRow.push(cell != null ? cell : "");
+      }
+    }
+    tableValues.push(formattedRow);
+  }
+
+  var dataRange = sheet.getRange(2, 1, rows.length, headers.length);
+  try {
+    dataRange.setValues(tableValues);
+  } catch (errSet) {
+    // Fallback: If an image fails to fetch from CDN, insert safe strings to avoid blocking export
+    var safeValues = [];
+    for (var rIdx = 0; rIdx < tableValues.length; rIdx++) {
+      var sRow = [];
+      for (var cIdx = 0; cIdx < tableValues[rIdx].length; cIdx++) {
+        var v = tableValues[rIdx][cIdx];
+        sRow.push(typeof v === "object" && v !== null ? "[Ảnh đang cập nhật]" : v);
+      }
+      safeValues.push(sRow);
+    }
+    dataRange.setValues(safeValues);
+  }
+
+  var rowHeight = hasImage ? 110 : 35;
+  sheet.setRowHeights(2, rows.length, rowHeight);
+
+  dataRange.setHorizontalAlignment("center");
+  dataRange.setVerticalAlignment("middle");
+  dataRange.setBorder(true, true, true, true, true, true, "#cbd5e1", SpreadsheetApp.BorderStyle.SOLID);
 }
