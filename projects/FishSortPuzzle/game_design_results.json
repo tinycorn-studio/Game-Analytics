@@ -116,7 +116,7 @@
         "Level 4",
         "Đóng băng toàn bộ bong bóng (mặc định là 3 nấc), không thể tương tác với cá bên trong.",
         "Mỗi lần sort xong 1 bóng cá bất kỳ ở gần xung quanh sẽ giảm 1 nấc băng về 0 để mở bóng.",
-        "level_04/board_start.jpg",
+        "mechanics/mechanic_frozen_bubble.jpg",
         "-"
       ],
       [
@@ -125,7 +125,7 @@
         "Level 7",
         "Khóa toàn bộ bong bóng, không thể lấy cá ra hoặc thả cá vào.",
         "Thu thập Chìa khóa vàng (bubbleKey) ở bóng khác để tự động mở xích (hoặc dùng Búa).",
-        "boosters/booster_net.jpg",
+        "-",
         "-"
       ],
       [
@@ -134,7 +134,7 @@
         "Level 12",
         "Sương mù che giấu hoàn toàn màu sắc và chủng loại của toàn bộ cá trong bóng.",
         "Tự động tan biến khi để bóng chạm đáy hoặc khi di chuyển đàn cá lân cận.",
-        "boosters/booster_clear.jpg",
+        "-",
         "-"
       ],
       [
@@ -143,7 +143,7 @@
         "Level 20",
         "Bể mục tiêu có gắn đồng hồ đếm ngược thời gian thực, có chuông cảnh báo nhấp nháy đỏ.",
         "Bắt buộc phải ưu tiên gom đủ đàn cá cho bể này trước khi về 00:00, hết giờ sẽ thua Level.",
-        "boosters/booster_extra_slot.jpg",
+        "-",
         "-"
       ],
       [
@@ -394,27 +394,27 @@
     "rows": [
       [
         "🏸 Vợt Bắt Cá (Net Booster)",
-        "",
+        "boosters/booster_net.jpg",
         "Level 03",
-        "Màn 03",
+        "03:01",
         "In-game Active Booster",
         "Thu thập ngay 1 nhóm cá bất kỳ mà không cần chờ bình rỗng. Cứu người chơi khi khay chờ sắp đầy.",
         "🟢 Áp lực thấp: Tặng miễn phí ở Lv.3 để kích thích thói quen dùng item (Habit Loop)."
       ],
       [
         "🧹 Cây Cọ Quét (Clear Brush)",
-        "",
+        "boosters/booster_clear.jpg",
         "Level 05",
-        "Màn 05",
+        "08:19",
         "Emergency Bailout Booster",
         "Quét dọn tức thời thanh chờ hoặc giải phóng 1 khối băng tắc nghẽn. Tránh bàn thua cận kề (Loss Aversion).",
         "🟡 Áp lực trung bình: Giới thiệu ở Lv.5 khi các màn bắt đầu có 2 khối băng, bán gói cứu nguy ($0.99)."
       ],
       [
         "🏺 Bình Cá Dự Phòng (Extra Jar Slot)",
-        "",
+        "boosters/booster_extra_slot.jpg",
         "Level 07",
-        "Màn 07",
+        "Cuối video (Dự kiến)",
         "Permanent / Session Upgrade",
         "Mở rộng không gian phân loại thêm 1 bình nước, giải tỏa áp lực sắp xếp cho các màn nhiều chủng loại cá.",
         "🔴 Áp lực cao: Mở khóa ở Lv.7, đây là điểm chốt chặn (Paywall) bán gói Starter Bundle hoặc xem Video Ads thưởng."
