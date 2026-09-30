@@ -198,6 +198,20 @@ def download_report(name, fmt):
     elif fmt == "csv":
         file_path = os.path.join(proj_dir, "report.csv")
         return send_file(file_path, as_attachment=True, download_name=f"{name}_level_matrix.csv")
+
+@app.route("/api/project/<name>/open_folder", methods=["POST"])
+def open_project_folder(name):
+    proj_dir = os.path.join(PROJECTS_DIR, name)
+    levels_dir = os.path.join(proj_dir, "levels")
+    target = levels_dir if os.path.exists(levels_dir) else proj_dir
+    if os.path.exists(target):
+        try:
+            os.startfile(target)
+            return jsonify({"success": True, "path": target})
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 500
+    return jsonify({"success": False, "error": "Thư mục không tồn tại"}), 404
+
 @app.route("/api/project/<name>/export_google_sheet", methods=["POST"])
 def export_google_sheet(name):
     proj_dir = os.path.join(PROJECTS_DIR, name)

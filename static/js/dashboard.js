@@ -312,3 +312,20 @@ async function submitExportGSheet() {
     }
 }
 
+async function openProjectFolder() {
+    if (!currentProject) {
+        alert("Vui lòng chọn một dự án trước!");
+        return;
+    }
+    try {
+        const res = await fetch(`/api/project/${currentProject}/open_folder`, { method: "POST" });
+        const data = await res.json();
+        if (!data.success) {
+            alert("Không thể mở thư mục: " + (data.error || "Lỗi không xác định"));
+        }
+    } catch (err) {
+        alert("Lỗi khi gọi máy chủ: " + err);
+    }
+}
+
+
