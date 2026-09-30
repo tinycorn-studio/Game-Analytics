@@ -187,7 +187,11 @@ def analyze_video(name):
 @app.route("/project/<name>/level_image/<path:filename>")
 def serve_level_image(name, filename):
     levels_dir = os.path.join(PROJECTS_DIR, name, "levels")
-    return send_from_directory(levels_dir, filename)
+    resp = send_from_directory(levels_dir, filename)
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.route("/api/project/<name>/download/<fmt>")
 def download_report(name, fmt):
@@ -230,6 +234,7 @@ def export_google_sheet(name):
     try:
         df = pd.read_csv(csv_path, encoding="utf-8-sig")
         levels = []
+        cache_buster = int(datetime.now().timestamp())
         for _, row in df.iterrows():
             duration = int(row.get("Thời lượng giải (giây)", 0))
             if duration <= 25:
@@ -249,8 +254,8 @@ def export_google_sheet(name):
             board_full = os.path.join(proj_dir, "levels", board_rel.replace("/", os.sep))
             vic_full = os.path.join(proj_dir, "levels", vic_rel.replace("/", os.sep))
 
-            board_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{board_rel}"
-            victory_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{vic_rel}"
+            board_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{board_rel}?v={cache_buster}"
+            victory_url = f"https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/{name}/levels/{vic_rel}?v={cache_buster}"
 
             levels.append({
                 "level": str(row.get("Level", "")),

@@ -50,25 +50,46 @@ class BaseGameDetector(ABC):
         """
         return False
 
+    def calculate_board_density(self, frame: np.ndarray, timestamp: float) -> float:
+        """
+        Calculates the visual element density / texture complexity in the board area.
+        Used to track elements falling/spawning into the board until fully populated.
+        """
+        if frame is None:
+            return 0.0
+        h, w = frame.shape[:2]
+        board = frame[int(0.35 * h):int(0.85 * h), int(0.10 * w):int(0.90 * w)]
+        import cv2
+        gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray, 50, 150)
+        return float(np.sum(edges > 0))
+
+    def detect_board_populated(self, frame: np.ndarray, timestamp: float) -> bool:
+        """
+        (Optional) Checks if the board area is populated with elements/bubbles rather than empty background.
+        """
+        return self.calculate_board_density(frame, timestamp) > 6000
+
     def get_board_start_timestamp(self, victory_event: Dict[str, Any], prev_victory_event: Optional[Dict[str, Any]]) -> float:
         """
         Intelligently scans the transition window between previous victory and current victory
         to pinpoint the exact pristine board start moment:
         1. In-game HUD is active (detect_hud_active is True)
         2. No modal tutorial/popup covering the board (detect_modal_dialog is False)
-        3. Earliest stable frame before player moves
+        3. Board is fully populated with elements (reaching initial peak density after drop animation)
+        4. Earliest stable frame before player moves
         """
         v_end = prev_victory_event["end"] if prev_victory_event else None
         v_start = victory_event["start"]
 
-        # Search window: from previous victory end + 0.5s up to 40 seconds later (capped before victory)
+        # Search window: from previous victory end + 0.5s up to 45 seconds later (capped before victory)
         search_start = max(0.0, (v_end + 0.5) if v_end is not None else 10.0)
         search_end = min(v_start - 2.0, search_start + 45.0)
 
         if search_start >= search_end:
             return search_start
 
-        candidates = []
+        timeline = []
         for t in np.arange(search_start, search_end, 0.5):
             frame = self.vp.get_frame_at_second(t)
             if frame is None:
@@ -80,13 +101,21 @@ class BaseGameDetector(ABC):
             if self.detect_modal_dialog(frame, t):
                 continue
 
-            candidates.append(t)
-            # Two consecutive clean frames confirm HUD stability and no transition flicker
-            if len(candidates) >= 2 and abs(candidates[-1] - candidates[-2] - 0.5) < 0.1:
-                return candidates[-2]
+            density = self.calculate_board_density(frame, t)
+            timeline.append((t, density))
 
-        if candidates:
-            return candidates[0]
+        if timeline:
+            # During level initialization, elements drop/animate onto the board.
+            # We look at the first window (~15s) of active gameplay to identify the initial full board density peak.
+            # The pristine start frame is when elements have fully settled (reaching >= 85% of peak initial density).
+            initial_window = timeline[:30]
+            max_initial_density = max(score for t, score in initial_window)
+            threshold = max(6000.0, max_initial_density * 0.85)
+
+            candidates = [t for t, score in initial_window if score >= threshold]
+            if candidates:
+                return candidates[0]
+            return timeline[0][0]
 
         # Safe fallback
         fallback = (v_end + 3.0) if v_end is not None else 22.0

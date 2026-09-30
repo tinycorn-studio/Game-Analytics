@@ -99,10 +99,11 @@ async function loadProjectDetails(projectName) {
         tbody.innerHTML = "";
 
         if (data.levels && data.levels.length > 0) {
+            const cacheBuster = Date.now();
             data.levels.forEach(lvl => {
                 const tr = document.createElement("tr");
-                const boardImgUrl = `/project/${projectName}/level_image/${lvl.board_image_rel}`;
-                const vicImgUrl = `/project/${projectName}/level_image/${lvl.victory_image_rel}`;
+                const boardImgUrl = `/project/${projectName}/level_image/${lvl.board_image_rel}?t=${cacheBuster}`;
+                const vicImgUrl = `/project/${projectName}/level_image/${lvl.victory_image_rel}?t=${cacheBuster}`;
 
                 tr.innerHTML = `
                     <td class="level-tag">Level ${lvl.level.toString().padStart(2, '0')}</td>
