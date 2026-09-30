@@ -58,8 +58,8 @@ class LevelCoordinator:
             board_shot_time = self.detector.get_board_start_timestamp(ev, prev_victory_event)
             vic_shot_time = self.detector.get_victory_screenshot_timestamp(ev)
             
-            # Start of level gameplay
-            level_start_sec = (prev_victory_event["end"] + 3.0) if prev_victory_event else 22.0
+            # Start of level gameplay matches the pristine board layout
+            level_start_sec = board_shot_time
             duration_sec = max(1, int(ev["start"] - level_start_sec))
             difficulty = self.detector.get_difficulty_label(duration_sec)
             

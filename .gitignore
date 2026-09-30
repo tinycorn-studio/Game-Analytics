@@ -32,3 +32,6 @@ $RECYCLE.BIN/
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Scratch / Debug files
+scratch/

@@ -31,17 +31,66 @@ class BaseGameDetector(ABC):
         """
         return False
 
+    def detect_hud_active(self, frame: np.ndarray, timestamp: float) -> bool:
+        """
+        (Optional) Checks if the in-game HUD (settings, level badge, top bar) is active.
+        Subclasses should override with game-specific UI anchors.
+        Default: checks if top bar region has content and is not black/blank.
+        """
+        if frame is None:
+            return False
+        h, w = frame.shape[:2]
+        top_bar = frame[:int(h * 0.12), :]
+        return float(np.std(top_bar)) > 20.0
+
+    def detect_modal_dialog(self, frame: np.ndarray, timestamp: float) -> bool:
+        """
+        (Optional) Checks if a tutorial popup, speech bubble, or modal dialog is covering the center.
+        Subclasses should override.
+        """
+        return False
+
     def get_board_start_timestamp(self, victory_event: Dict[str, Any], prev_victory_event: Optional[Dict[str, Any]]) -> float:
         """
-        Calculates the timestamp for the initial board screenshot (board_start.jpg).
-        Default: 2 seconds after previous victory ended (or 22s for level 1).
+        Intelligently scans the transition window between previous victory and current victory
+        to pinpoint the exact pristine board start moment:
+        1. In-game HUD is active (detect_hud_active is True)
+        2. No modal tutorial/popup covering the board (detect_modal_dialog is False)
+        3. Earliest stable frame before player moves
         """
-        start_time = (prev_victory_event["end"] + 2.0) if prev_victory_event else 22.0
+        v_end = prev_victory_event["end"] if prev_victory_event else None
         v_start = victory_event["start"]
-        board_time = start_time + 1.5
-        if board_time >= v_start:
-            board_time = start_time
-        return board_time
+
+        # Search window: from previous victory end + 0.5s up to 40 seconds later (capped before victory)
+        search_start = max(0.0, (v_end + 0.5) if v_end is not None else 10.0)
+        search_end = min(v_start - 2.0, search_start + 45.0)
+
+        if search_start >= search_end:
+            return search_start
+
+        candidates = []
+        for t in np.arange(search_start, search_end, 0.5):
+            frame = self.vp.get_frame_at_second(t)
+            if frame is None:
+                continue
+
+            if not self.detect_hud_active(frame, t):
+                continue
+
+            if self.detect_modal_dialog(frame, t):
+                continue
+
+            candidates.append(t)
+            # Two consecutive clean frames confirm HUD stability and no transition flicker
+            if len(candidates) >= 2 and abs(candidates[-1] - candidates[-2] - 0.5) < 0.1:
+                return candidates[-2]
+
+        if candidates:
+            return candidates[0]
+
+        # Safe fallback
+        fallback = (v_end + 3.0) if v_end is not None else 22.0
+        return min(fallback, v_start - 1.0)
 
     def get_victory_screenshot_timestamp(self, victory_event: Dict[str, Any]) -> float:
         """
