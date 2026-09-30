@@ -217,49 +217,99 @@ main {
     justify-content: space-between;
 }
 
-table {
+.table-scroll-container {
+    overflow-x: auto;
     width: 100%;
-    border-collapse: collapse;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: #111827;
     margin-top: 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+.table-scroll-container::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #334155;
+    border-radius: 4px;
+}
+
+#levelTable {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
 }
 
 th, td {
-    padding: 0.85rem 1rem;
+    padding: 0.85rem 1.15rem;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.88rem;
+    vertical-align: middle;
 }
 
 th {
-    background-color: #162032;
-    color: var(--text-secondary);
-    font-weight: 600;
+    background-color: #1a2234;
+    color: #94a3b8;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
 }
 
 tr:hover td {
-    background-color: #24334a;
+    background-color: #1e293b;
 }
 
 .level-tag {
     font-weight: 700;
     color: var(--accent);
+    white-space: nowrap;
 }
 
+/* Phone Screenshot Thumbnail (Level Matrix) */
 .thumb-preview {
-    width: 50px;
-    height: 80px;
+    width: 48px;
+    height: 78px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     border: 1px solid var(--border-color);
-    transition: transform 0.2s;
+    transition: transform 0.2s, border-color 0.2s;
+    background: #0f172a;
+    display: inline-block;
 }
 
 .thumb-preview:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
+    border-color: var(--accent);
+}
+
+/* Square Icon Thumbnail (Mechanics Catalog & Boosters) */
+.thumb-icon-square {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #0f172a;
+    padding: 2px;
+    display: inline-block;
+    transition: transform 0.2s, border-color 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.thumb-icon-square:hover {
+    transform: scale(1.15);
     border-color: var(--accent);
 }
 
@@ -443,56 +493,74 @@ tr:hover td {
 /* Tier Badges (Image 4 styling) */
 .badge-tier {
     display: inline-block;
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.75px;
+    white-space: nowrap !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .tier-normal {
-    background-color: #1e293b;
-    color: #94a3b8;
-    border: 1px solid #334155;
+    background-color: #334155;
+    color: #e2e8f0;
+    border: 1px solid #475569;
 }
 .tier-hard {
-    background-color: #1e3a8a;
-    color: #93c5fd;
-    border: 1px solid #2563eb;
+    background-color: #1e40af;
+    color: #bfdbfe;
+    border: 1px solid #3b82f6;
 }
 .tier-crazy {
-    background-color: #7f1d1d;
-    color: #fca5a5;
-    border: 1px solid #dc2626;
+    background-color: #991b1b;
+    color: #fecaca;
+    border: 1px solid #ef4444;
 }
 
 /* Mechanic Unlock Milestone Badge */
 .badge-unlock {
-    display: inline-block;
-    background-color: rgba(16, 185, 129, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background-color: rgba(16, 185, 129, 0.15);
     color: #34d399;
     border: 1px solid #059669;
-    padding: 0.2rem 0.65rem;
-    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
     font-weight: 700;
     font-size: 0.8rem;
+    white-space: nowrap !important;
 }
 
 /* Checkbox Icons */
 .chk-icon-active {
     color: #10b981;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
 }
 .chk-icon-inactive {
-    color: #334155;
-    font-size: 1.15rem;
+    color: #475569;
+    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.45;
 }
 
 /* Table Text Wrapping & Alignment */
-#levelTable td {
-    max-width: 440px;
+.col-nowrap {
+    white-space: nowrap !important;
+}
+.col-text {
+    min-width: 280px;
+    max-width: 480px;
+    white-space: normal !important;
+    line-height: 1.55;
     word-break: break-word;
-    line-height: 1.45;
 }
 .text-left {
     text-align: left !important;
