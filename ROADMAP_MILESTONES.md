@@ -34,11 +34,11 @@ Hệ thống được thiết kế theo tiêu chuẩn kiến trúc **SOLID**, t�
   - [x] Tự động tổng hợp: Số lượng màn, Độ dài trung bình, Tần suất xuất hiện tính năng mới, Điểm mạnh / Điểm yếu thiết kế của đối thủ.
   - [x] Tạo bảng đúc kết bài học thực chiến cho đội ngũ làm game sang Tab **`Executive Summary`**.
 
-- [ ] **Milestone 6: Tích Hợp Toàn Diện, Nâng Cấp Web Dashboard & Đồng Bộ Git**
-  - [ ] Tích hợp toàn bộ pipeline vào endpoint API backend (`/api/project/<name>/analyze`).
-  - [ ] Nâng cấp giao diện Web Localhost hỗ trợ xem trước các Tab phân tích GD dạng thẻ/bảng.
-  - [ ] Chạy kiểm thử End-to-End thực tế trên video `FishSortPuzzle`.
-  - [ ] Đồng bộ toàn bộ mã nguồn lên GitHub Repo `tinycorn-studio/Game-Analytics`.
+- [x] **Milestone 6: Tích Hợp Toàn Diện, Nâng Cấp Web Dashboard & Đồng Bộ Git**
+  - [x] Tích hợp toàn bộ pipeline vào endpoint API backend (`/api/project/<name>/analyze`).
+  - [x] Nâng cấp giao diện Web Localhost hỗ trợ xem trước các Tab phân tích GD dạng thẻ/bảng.
+  - [x] Chạy kiểm thử End-to-End thực tế trên video `FishSortPuzzle`.
+  - [x] Đồng bộ toàn bộ mã nguồn lên GitHub Repo `tinycorn-studio/Game-Analytics`.
 
 ---
 
