@@ -2,6 +2,36 @@
  * Google Apps Script Webhook để nhận dữ liệu và NHÚNG ẢNH MÀN CHƠI từ Game Level Deconstructor Tool
  */
 
+function doGet(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("FishSortPuzzle");
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ error: "Sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (e && e.parameter && e.parameter.test) {
+      var url1 = "https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/FishSortPuzzle/levels/level_01/board_start.jpg";
+      var url2 = "https://raw.githubusercontent.com/tinycorn-studio/Game-Analytics/main/projects/FishSortPuzzle/levels/level_01/victory.jpg";
+      
+      // Test 1: Just =IMAGE(url)
+      sheet.getRange("B2").setFormula('=IMAGE("' + url1 + '")');
+      
+      // Test 2: newCellImage()
+      var cellImg = SpreadsheetApp.newCellImage().setSourceUrl(url2).build();
+      sheet.getRange("C2").setValue(cellImg);
+    }
+    
+    var range = sheet.getRange(1, 1, Math.min(sheet.getLastRow(), 8), sheet.getLastColumn());
+    return ContentService.createTextOutput(JSON.stringify({
+      values: range.getDisplayValues(),
+      formulas: range.getFormulas()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -68,36 +98,56 @@ function doPost(e) {
     var rowCount = levels.length;
     
     if (rowCount > 0) {
-      var rowValues = [];
+      // 1. Chuẩn bị mảng 2 chiều cho bảng dữ liệu và ảnh nhúng Native In-Cell
+      var tableValues = [];
       for (var i = 0; i < rowCount; i++) {
         var lvl = levels[i];
         
-        var boardFormula = "-";
+        // Tạo đối tượng ảnh nhúng trực tiếp (Native In-Cell Image)
+        var boardImg = "-";
         if (lvl.board_url) {
-          boardFormula = '=HYPERLINK("' + lvl.board_url + '", IMAGE("' + lvl.board_url + '"))';
+          try {
+            boardImg = SpreadsheetApp.newCellImage()
+              .setSourceUrl(lvl.board_url)
+              .setAltTextTitle((lvl.level || ("Level " + (i + 1))) + " Board Start")
+              .build();
+          } catch (e1) {
+            boardImg = "-";
+          }
         }
         
-        var victoryFormula = "-";
+        var victoryImg = "-";
         if (lvl.victory_url) {
-          victoryFormula = '=HYPERLINK("' + lvl.victory_url + '", IMAGE("' + lvl.victory_url + '"))';
+          try {
+            victoryImg = SpreadsheetApp.newCellImage()
+              .setSourceUrl(lvl.victory_url)
+              .setAltTextTitle((lvl.level || ("Level " + (i + 1))) + " Victory Screen")
+              .build();
+          } catch (e2) {
+            victoryImg = "-";
+          }
         }
         
-        rowValues.push([
+        tableValues.push([
           lvl.level || ("Level " + (i + 1)),
-          boardFormula,
-          victoryFormula,
+          boardImg,
+          victoryImg,
           lvl.start_time || "",
           lvl.end_time || "",
-          lvl.duration || 0,
+          parseInt(lvl.duration) || 0,
           lvl.difficulty || "Bình thường",
           lvl.status || "Hoàn thành",
           lvl.notes || ""
         ]);
       }
       
-      // Ghi hàng loạt (Batch setValues) chỉ trong 1 lệnh duy nhất
+      // Ghi toàn bộ dữ liệu & ảnh vào bảng trong 1 thao tác (Batch setValues)
       var dataRange = sheet.getRange(2, 1, rowCount, headers.length);
-      dataRange.setValues(rowValues);
+      dataRange.setValues(tableValues);
+      
+      // Định dạng số nguyên cho cột 6 (Thời lượng giải) để không bao giờ bị nhảy sang dạng Ngày Tháng
+      sheet.getRange(2, 6, rowCount, 1).setNumberFormat("0");
+      sheet.getRange(2, 4, rowCount, 2).setNumberFormat("@"); // Cột 4, 5 dạng text
       
       // Chỉnh chiều cao hàng 110px để hiển thị ảnh thumbnail điện thoại rõ nét
       sheet.setRowHeights(2, rowCount, 110);
