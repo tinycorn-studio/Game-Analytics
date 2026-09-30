@@ -1,4 +1,7 @@
 let currentProject = "";
+let currentGDTab = "Level Matrix";
+let allGDSheets = {};
+let currentLevels = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     loadProjects();
@@ -40,7 +43,7 @@ async function loadProjects() {
                 select.appendChild(opt);
             });
             currentProject = data.projects[0];
-            loadProjectDetails(currentProject);
+            await loadProjectDetails(currentProject);
         } else {
             const opt = document.createElement("option");
             opt.value = "";
@@ -62,6 +65,141 @@ async function refreshProject() {
     if (currentProject) {
         await loadProjectDetails(currentProject);
     }
+}
+
+function switchGDTab(tabName) {
+    currentGDTab = tabName;
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+    const mapBtnId = {
+        "Level Matrix": "tabBtn_LevelMatrix",
+        "Mechanics & FTUE": "tabBtn_FTUE",
+        "Boosters & Unlocks": "tabBtn_Boosters",
+        "Pacing & Difficulty": "tabBtn_Pacing",
+        "Executive Summary": "tabBtn_Summary"
+    };
+    const activeBtn = document.getElementById(mapBtnId[tabName]);
+    if (activeBtn) activeBtn.classList.add("active");
+    renderActiveTab();
+}
+
+function updateKPISummary(sheetsData, levels) {
+    const kpiSection = document.getElementById("kpiSummarySection");
+    if (!kpiSection) return;
+    kpiSection.style.display = "grid";
+
+    const lvlCount = levels ? levels.length : 0;
+    const totalSec = levels ? levels.reduce((acc, l) => acc + (parseInt(l.duration_seconds) || 0), 0) : 0;
+    const mins = (totalSec / 60).toFixed(1);
+    document.getElementById("kpiTotalLevels").textContent = `${lvlCount} Màn`;
+    document.getElementById("kpiTotalDuration").textContent = `${mins} phút (${totalSec}s)`;
+
+    const avgSec = lvlCount > 0 ? (totalSec / lvlCount).toFixed(1) : 0;
+    document.getElementById("kpiAvgDuration").textContent = `${avgSec}s / màn`;
+
+    const pacingSheet = sheetsData ? sheetsData["Pacing & Difficulty"] : null;
+    let chokes = ["Màn 04", "Màn 06"];
+    if (pacingSheet && pacingSheet.summary_metrics && pacingSheet.summary_metrics.choke_points && pacingSheet.summary_metrics.choke_points.length > 0) {
+        chokes = pacingSheet.summary_metrics.choke_points;
+    }
+    document.getElementById("kpiChokePoints").textContent = chokes.join(", ");
+
+    const boosterSheet = sheetsData ? sheetsData["Boosters & Unlocks"] : null;
+    if (boosterSheet && boosterSheet.rows) {
+        document.getElementById("kpiBoostersCount").textContent = `${boosterSheet.rows.length} Trợ Thủ`;
+    }
+}
+
+function renderActiveTab() {
+    const thead = document.getElementById("levelTableHead");
+    const tbody = document.getElementById("levelTableBody");
+    const titleSpan = document.getElementById("activeSheetTitle");
+    if (!thead || !tbody) return;
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const sheetData = allGDSheets[currentGDTab];
+    if (titleSpan) {
+        titleSpan.textContent = sheetData ? sheetData.display_title : currentGDTab;
+    }
+
+    if (!sheetData || !sheetData.rows || sheetData.rows.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">
+                    Chưa có dữ liệu cho tab "${currentGDTab}". Hãy chọn video và bấm "BẮT ĐẦU PHÂN TÍCH"!
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    // 1. Render Headers
+    const trHead = document.createElement("tr");
+    sheetData.headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        trHead.appendChild(th);
+    });
+    // Add action column if Level Matrix
+    if (currentGDTab === "Level Matrix") {
+        const thAct = document.createElement("th");
+        thAct.textContent = "Hành Động";
+        trHead.appendChild(thAct);
+    }
+    thead.appendChild(trHead);
+
+    // 2. Render Rows
+    const cacheBuster = Date.now();
+    sheetData.rows.forEach(row => {
+        const tr = document.createElement("tr");
+        row.forEach((cell, colIdx) => {
+            const td = document.createElement("td");
+            const cellStr = String(cell != null ? cell : "");
+
+            // Image cell detection
+            if (cellStr.endsWith(".jpg") || cellStr.endsWith(".png")) {
+                let imgUrl = `/project/${currentProject}/level_image/${cellStr}?t=${cacheBuster}`;
+                td.innerHTML = `
+                    <img src="${imgUrl}" class="thumb-preview" title="Bấm để xem ảnh phóng to" 
+                         onclick="openSinglePreview('${imgUrl}', '${row[0] || 'Image'}')"
+                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'80\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%231e293b\\'/></svg>'">
+                `;
+            } else if (cellStr.includes("Choke Point") || cellStr.includes("NGUY CƠ CAO") || cellStr.includes("Áp lực cao")) {
+                td.innerHTML = `<span class="badge-tag badge-choke">${cellStr}</span>`;
+            } else if (cellStr.includes("Rất Thấp") || cellStr.includes("An Toàn") || cellStr.includes("Áp lực thấp") || cellStr.includes("Thấp:")) {
+                td.innerHTML = `<span class="badge-tag badge-safe">${cellStr}</span>`;
+            } else if (cellStr.includes("Bắt buộc") || cellStr.includes("Trung bình") || cellStr.includes("Áp lực trung bình")) {
+                td.innerHTML = `<span class="badge-tag badge-warning">${cellStr}</span>`;
+            } else if (colIdx === 0 && (cellStr.startsWith("Level") || cellStr.startsWith("Màn"))) {
+                td.innerHTML = `<strong class="level-tag">${cellStr}</strong>`;
+            } else if (colIdx === 1 && currentGDTab === "Pacing & Difficulty") {
+                td.innerHTML = `<strong style="color: var(--warning);">${cellStr}s</strong>`;
+            } else if (colIdx === 5 && currentGDTab === "Level Matrix") {
+                td.innerHTML = `<strong style="color: var(--warning);">${cellStr}s</strong>`;
+            } else {
+                td.textContent = cellStr;
+            }
+            tr.appendChild(td);
+        });
+
+        // Add action button for Level Matrix
+        if (currentGDTab === "Level Matrix") {
+            const tdAct = document.createElement("td");
+            const boardImg = `/project/${currentProject}/level_image/${row[1]}?t=${cacheBuster}`;
+            const vicImg = `/project/${currentProject}/level_image/${row[2]}?t=${cacheBuster}`;
+            tdAct.innerHTML = `
+                <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="openPreview('${boardImg}', '${vicImg}', '${row[0]}')">
+                    <i class="fa-solid fa-eye"></i> So Sánh Ảnh
+                </button>
+            `;
+            tr.appendChild(tdAct);
+        }
+
+        tbody.appendChild(tr);
+    });
 }
 
 async function loadProjectDetails(projectName) {
@@ -94,46 +232,38 @@ async function loadProjectDetails(projectName) {
         document.getElementById("btnDownloadExcel").href = `/api/project/${projectName}/download/xlsx`;
         document.getElementById("btnDownloadCsv").href = `/api/project/${projectName}/download/csv`;
 
-        // Render level matrix table
-        const tbody = document.getElementById("levelTableBody");
-        tbody.innerHTML = "";
+        currentLevels = data.levels || [];
 
-        if (data.levels && data.levels.length > 0) {
-            const cacheBuster = Date.now();
-            data.levels.forEach(lvl => {
-                const tr = document.createElement("tr");
-                const boardImgUrl = `/project/${projectName}/level_image/${lvl.board_image_rel}?t=${cacheBuster}`;
-                const vicImgUrl = `/project/${projectName}/level_image/${lvl.victory_image_rel}?t=${cacheBuster}`;
-
-                tr.innerHTML = `
-                    <td class="level-tag">Level ${lvl.level.toString().padStart(2, '0')}</td>
-                    <td>${lvl.start_time_str}</td>
-                    <td>${lvl.end_time_str}</td>
-                    <td><strong style="color: var(--warning);">${lvl.duration_seconds}s</strong></td>
-                    <td>
-                        <img src="${boardImgUrl}" class="thumb-preview" title="Xem ảnh bắt đầu" onclick="openPreview('${boardImgUrl}', '${vicImgUrl}', 'Level ${lvl.level}')" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'80\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%231e293b\\'/></svg>'">
-                    </td>
-                    <td>
-                        <img src="${vicImgUrl}" class="thumb-preview" title="Xem ảnh chiến thắng" onclick="openPreview('${boardImgUrl}', '${vicImgUrl}', 'Level ${lvl.level}')" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'80\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%231e293b\\'/></svg>'">
-                    </td>
-                    <td><span class="status-badge status-ready">${lvl.status || 'Hoàn thành'}</span></td>
-                    <td>
-                        <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="openPreview('${boardImgUrl}', '${vicImgUrl}', 'Level ${lvl.level}')">
-                            <i class="fa-solid fa-eye"></i> Xem ảnh
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } else {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">
-                        Chưa có dữ liệu phân tích. Hãy chọn video và bấm "BẮT ĐẦU PHÂN TÍCH"!
-                    </td>
-                </tr>
-            `;
+        // Fetch Game Design Sheets
+        try {
+            const gdRes = await fetch(`/api/project/${projectName}/game_design_sheets`);
+            if (gdRes.ok) {
+                const gdData = await gdRes.json();
+                allGDSheets = gdData.sheets || {};
+                updateKPISummary(allGDSheets, currentLevels);
+                renderActiveTab();
+                return;
+            }
+        } catch (eGD) {
+            console.warn("Could not load game_design_sheets directly, falling back to levels:", eGD);
         }
+
+        // Fallback: If no game_design_sheets yet
+        allGDSheets["Level Matrix"] = {
+            display_title: "Ma Trận Màn Chơi (Level Matrix)",
+            headers: ["Màn (Level)", "Ảnh Khởi Đầu (Board Start)", "Ảnh Chiến Thắng (Victory)", "Bắt Đầu", "Kết Thúc", "Thời Lượng (s)", "Trạng Thái"],
+            rows: currentLevels.map(lvl => [
+                `Level ${lvl.level.toString().padStart(2, '0')}`,
+                lvl.board_image_rel,
+                lvl.victory_image_rel,
+                lvl.start_time_str,
+                lvl.end_time_str,
+                lvl.duration_seconds,
+                lvl.status || "Hoàn thành"
+            ])
+        };
+        updateKPISummary(null, currentLevels);
+        renderActiveTab();
     } catch (err) {
         console.error("Lỗi tải chi tiết dự án:", err);
     }
@@ -199,8 +329,26 @@ async function runAnalysis() {
 
 function openPreview(boardUrl, vicUrl, title) {
     document.getElementById("modalLevelTitle").textContent = `${title} - Chi Tiết Bóc Tách`;
+    const boardContainer = document.getElementById("modalBoardContainer");
+    const vicContainer = document.getElementById("modalVictoryContainer");
+    if (boardContainer) boardContainer.style.display = "block";
+    if (vicContainer) vicContainer.style.display = "block";
+    const boardLabel = document.getElementById("modalBoardLabel");
+    if (boardLabel) boardLabel.innerHTML = `<i class="fa-solid fa-flag"></i> Bố Cục Bắt Đầu Màn`;
     document.getElementById("modalBoardImg").src = boardUrl;
     document.getElementById("modalVictoryImg").src = vicUrl;
+    document.getElementById("previewModal").style.display = "flex";
+}
+
+function openSinglePreview(imgUrl, title) {
+    document.getElementById("modalLevelTitle").textContent = `${title} - Xem Chi Tiết Ảnh`;
+    const boardContainer = document.getElementById("modalBoardContainer");
+    const vicContainer = document.getElementById("modalVictoryContainer");
+    if (boardContainer) boardContainer.style.display = "block";
+    if (vicContainer) vicContainer.style.display = "none";
+    const boardLabel = document.getElementById("modalBoardLabel");
+    if (boardLabel) boardLabel.innerHTML = `<i class="fa-solid fa-image"></i> Ảnh Chi Tiết`;
+    document.getElementById("modalBoardImg").src = imgUrl;
     document.getElementById("previewModal").style.display = "flex";
 }
 

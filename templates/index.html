@@ -84,42 +84,76 @@
             </div>
         </section>
 
-        <!-- Level Matrix Card -->
+        <!-- Game Design KPI Summary Section -->
+        <section class="kpi-grid" id="kpiSummarySection" style="display: none;">
+            <div class="kpi-card">
+                <span class="kpi-lbl"><i class="fa-solid fa-gamepad" style="color: var(--accent);"></i> Tổng Số Màn</span>
+                <span class="kpi-val" id="kpiTotalLevels">0</span>
+                <span class="kpi-sub" id="kpiTotalDuration">0s gameplay</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-lbl"><i class="fa-solid fa-stopwatch" style="color: var(--warning);"></i> Thời Lượng TB / Màn</span>
+                <span class="kpi-val" id="kpiAvgDuration">0s</span>
+                <span class="kpi-sub">Chuẩn Casual: 60-120s</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-lbl"><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i> Điểm Nghẽn (Choke Points)</span>
+                <span class="kpi-val" id="kpiChokePoints" style="color: #f87171; font-size: 1.1rem;">Chưa xác định</span>
+                <span class="kpi-sub">Điểm chạm ép nạp / xem Ads</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-lbl"><i class="fa-solid fa-wand-magic" style="color: #a855f7;"></i> Trợ Thủ Mở Khóa</span>
+                <span class="kpi-val" id="kpiBoostersCount" style="font-size: 1.1rem;">3 Items</span>
+                <span class="kpi-sub" id="kpiBoostersList">Net, Clear, Slot</span>
+            </div>
+        </section>
+
+        <!-- Game Design Deconstruction Suite Card -->
         <section class="card">
             <div class="card-header">
                 <div class="card-title">
-                    <i class="fa-solid fa-table-cells" style="color: var(--success);"></i>
-                    <span>Ma Trận Màn Chơi (Level Matrix)</span>
+                    <i class="fa-solid fa-layer-group" style="color: var(--accent);"></i>
+                    <span id="activeSheetTitle">Ma Trận Màn Chơi (Level Matrix)</span>
                 </div>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                     <button class="btn btn-secondary" style="font-size: 0.85rem;" onclick="openProjectFolder()" title="Mở thư mục chứa ảnh trên máy tính">
                         <i class="fa-solid fa-folder-open"></i> Mở Thư Mục Ảnh
                     </button>
                     <button id="btnExportGSheet" class="btn btn-primary" style="font-size: 0.85rem; background-color: #0f9d58; color: #fff;" onclick="openGSheetModal()">
-                        <i class="fa-solid fa-table"></i> Xuất Google Sheet
+                        <i class="fa-solid fa-table"></i> Xuất Google Sheet (5 Tabs)
                     </button>
                     <a id="btnDownloadExcel" href="#" class="btn btn-success" style="font-size: 0.85rem;">
-                        <i class="fa-solid fa-file-excel"></i> Tải Báo Cáo Excel (.xlsx)
+                        <i class="fa-solid fa-file-excel"></i> Tải Báo Cáo Excel (5 Tabs)
                     </a>
                     <a id="btnDownloadCsv" href="#" class="btn btn-secondary" style="font-size: 0.85rem;">
-                        <i class="fa-solid fa-file-csv"></i> Tải CSV (.csv)
+                        <i class="fa-solid fa-file-csv"></i> Tải CSV
                     </a>
                 </div>
             </div>
 
+            <!-- Tab Navigation Bar -->
+            <div class="tab-bar" id="gameDesignTabBar">
+                <button class="tab-btn active" id="tabBtn_LevelMatrix" onclick="switchGDTab('Level Matrix')">
+                    <i class="fa-solid fa-table-cells" style="color: var(--success);"></i> 1. Ma Trận Màn Chơi
+                </button>
+                <button class="tab-btn" id="tabBtn_FTUE" onclick="switchGDTab('Mechanics & FTUE')">
+                    <i class="fa-solid fa-puzzle-piece" style="color: #38bdf8;"></i> 2. Cơ Chế & Tân Thủ (FTUE)
+                </button>
+                <button class="tab-btn" id="tabBtn_Boosters" onclick="switchGDTab('Boosters & Unlocks')">
+                    <i class="fa-solid fa-bolt" style="color: #f59e0b;"></i> 3. Trợ Thủ & Mở Khóa
+                </button>
+                <button class="tab-btn" id="tabBtn_Pacing" onclick="switchGDTab('Pacing & Difficulty')">
+                    <i class="fa-solid fa-chart-line" style="color: #ef4444;"></i> 4. Nhịp Độ & Độ Khó
+                </button>
+                <button class="tab-btn" id="tabBtn_Summary" onclick="switchGDTab('Executive Summary')">
+                    <i class="fa-solid fa-lightbulb" style="color: #a855f7;"></i> 5. Tổng Kết GD (Executive Summary)
+                </button>
+            </div>
+
             <div style="overflow-x: auto;">
                 <table id="levelTable">
-                    <thead>
-                        <tr>
-                            <th>Màn (Level)</th>
-                            <th>Thời Gian Bắt Đầu</th>
-                            <th>Thời Gian Thắng</th>
-                            <th>Thời Lượng Giải (s)</th>
-                            <th>Ảnh Khởi Đầu (Board)</th>
-                            <th>Ảnh Chiến Thắng (Victory)</th>
-                            <th>Trạng Thái</th>
-                            <th>Hành Động</th>
-                        </tr>
+                    <thead id="levelTableHead">
+                        <!-- Rendered dynamically -->
                     </thead>
                     <tbody id="levelTableBody">
                         <tr>
@@ -139,11 +173,11 @@
             <span class="modal-close" onclick="closeModal()">&times;</span>
             <div class="card-title" id="modalLevelTitle">Level Details Preview</div>
             <div class="modal-compare-grid">
-                <div class="modal-item">
-                    <span class="modal-label"><i class="fa-solid fa-flag"></i> Bố Cục Bắt Đầu Màn</span>
+                <div class="modal-item" id="modalBoardContainer">
+                    <span class="modal-label" id="modalBoardLabel"><i class="fa-solid fa-flag"></i> Bố Cục Bắt Đầu Màn</span>
                     <img id="modalBoardImg" src="" alt="Start Board">
                 </div>
-                <div class="modal-item">
+                <div class="modal-item" id="modalVictoryContainer">
                     <span class="modal-label"><i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Màn Hình Chiến Thắng & Thưởng</span>
                     <img id="modalVictoryImg" src="" alt="Victory Screen">
                 </div>
