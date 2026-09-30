@@ -214,6 +214,9 @@ def serve_level_image(name, filename):
     if filename.startswith("boosters/"):
         rel_fn = filename.replace("boosters/", "").replace("boosters\\", "")
         target_dir = os.path.join(proj_dir, "boosters")
+    elif filename.startswith("mechanics/"):
+        rel_fn = filename.replace("mechanics/", "").replace("mechanics\\", "")
+        target_dir = os.path.join(proj_dir, "mechanics")
     else:
         rel_fn = filename
         target_dir = os.path.join(proj_dir, "levels")

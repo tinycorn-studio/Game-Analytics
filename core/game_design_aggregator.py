@@ -63,6 +63,8 @@ class GameDesignAggregator:
                         clean_path = val_str.replace("\\", "/")
                         if clean_path.startswith("boosters/"):
                             img_url = f"{github_repo_base}/projects/{game_name}/{clean_path}?v={cache_buster}"
+                        elif clean_path.startswith("mechanics/"):
+                            img_url = f"{github_repo_base}/projects/{game_name}/{clean_path}?v={cache_buster}"
                         else:
                             img_url = f"{github_repo_base}/projects/{game_name}/levels/{clean_path}?v={cache_buster}"
                         new_row.append({"type": "image", "url": img_url, "rel_path": val_str})

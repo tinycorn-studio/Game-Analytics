@@ -60,33 +60,27 @@ class BoosterProgressionAnalyzer(BaseGameAnalyzer):
         for s_info in slots_def:
             target_lvl = s_info["unlock_lvl"]
             y1_pct, y2_pct, x1_pct, x2_pct = s_info["box"]
-            
+            slug = s_info["slug"]
+            icon_filename = f"booster_{slug}.jpg"
+            icon_full_path = os.path.join(boosters_dir, icon_filename)
+            icon_rel = f"boosters/{icon_filename}"
+
             # Find matching level data
             matching_lvl = next((l for l in levels_data if l.get("level") == target_lvl), None)
             
-            shot_time = 0.0
-            time_str = f"Màn {target_lvl:02d}"
-            icon_rel = ""
+            if matching_lvl:
+                shot_time = matching_lvl.get("board_shot_time", matching_lvl.get("start_second", 0.0))
+                time_str = matching_lvl.get("start_time_str", "00:00")
+            else:
+                shot_time = levels_data[-1].get("end_second", 800.0) if levels_data else 800.0
+                time_str = "Cuối video (Dự kiến)"
 
-            if vp is not None:
-                # Capture frame at target level or fallback
-                if matching_lvl:
-                    shot_time = matching_lvl.get("board_shot_time", matching_lvl.get("start_second", 0.0))
-                    time_str = f"Level {target_lvl:02d} ({matching_lvl.get('start_time_str', '00:00')})"
-                else:
-                    # Fallback for future levels like Lv.7
-                    shot_time = levels_data[-1].get("end_second", 800.0) if levels_data else 800.0
-                    time_str = f"Level {target_lvl:02d} (Dự kiến mở khóa)"
-
+            if vp is not None and not os.path.exists(icon_full_path):
                 frame = vp.get_frame_at_second(shot_time)
                 if frame is not None:
                     h, w = frame.shape[:2]
                     icon_crop = frame[int(y1_pct * h):int(y2_pct * h), int(x1_pct * w):int(x2_pct * w)]
-                    slug = s_info["slug"]
-                    icon_filename = f"booster_{slug}.jpg"
-                    icon_full_path = os.path.join(boosters_dir, icon_filename)
                     cv2.imwrite(icon_full_path, icon_crop)
-                    icon_rel = f"boosters/{icon_filename}"
 
             # Game Design Specifications for each booster
             if s_info["slot"] == 1:

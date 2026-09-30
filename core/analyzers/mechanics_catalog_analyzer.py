@@ -38,7 +38,7 @@ class MechanicsCatalogAnalyzer(BaseGameAnalyzer):
                 "level": "Level 4",
                 "desc": "Đóng băng toàn bộ bong bóng (mặc định là 3 nấc), không thể tương tác với cá bên trong.",
                 "counter": "Mỗi lần sort xong 1 bóng cá bất kỳ ở gần xung quanh sẽ giảm 1 nấc băng về 0 để mở bóng.",
-                "img": "level_04/board_start.jpg",
+                "img": "mechanics/mechanic_frozen_bubble.jpg",
                 "img2": "-"
             },
             {
@@ -47,7 +47,7 @@ class MechanicsCatalogAnalyzer(BaseGameAnalyzer):
                 "level": "Level 7",
                 "desc": "Khóa toàn bộ bong bóng, không thể lấy cá ra hoặc thả cá vào.",
                 "counter": "Thu thập Chìa khóa vàng (bubbleKey) ở bóng khác để tự động mở xích (hoặc dùng Búa).",
-                "img": "boosters/booster_net.jpg",
+                "img": "-",
                 "img2": "-"
             },
             {
@@ -56,7 +56,7 @@ class MechanicsCatalogAnalyzer(BaseGameAnalyzer):
                 "level": "Level 12",
                 "desc": "Sương mù che giấu hoàn toàn màu sắc và chủng loại của toàn bộ cá trong bóng.",
                 "counter": "Tự động tan biến khi để bóng chạm đáy hoặc khi di chuyển đàn cá lân cận.",
-                "img": "boosters/booster_clear.jpg",
+                "img": "-",
                 "img2": "-"
             },
             {
@@ -65,7 +65,7 @@ class MechanicsCatalogAnalyzer(BaseGameAnalyzer):
                 "level": "Level 20",
                 "desc": "Bể mục tiêu có gắn đồng hồ đếm ngược thời gian thực, có chuông cảnh báo nhấp nháy đỏ.",
                 "counter": "Bắt buộc phải ưu tiên gom đủ đàn cá cho bể này trước khi về 00:00, hết giờ sẽ thua Level.",
-                "img": "boosters/booster_extra_slot.jpg",
+                "img": "-",
                 "img2": "-"
             },
             {
@@ -88,17 +88,14 @@ class MechanicsCatalogAnalyzer(BaseGameAnalyzer):
             }
         ]
 
-        # Verify images exist on disk, fallback if missing
+        # Verify images exist on disk
         rows = []
         for item in catalog_defs:
             img1 = item["img"]
             if img1 != "-" and proj_dir:
-                # check if level image or booster image exists
                 full_p = os.path.join(proj_dir, img1)
-                full_lvl = os.path.join(proj_dir, "levels", img1)
-                if not os.path.exists(full_p) and not os.path.exists(full_lvl):
-                    # fallback to level 1 board if level 4 not available
-                    img1 = "level_01/board_start.jpg"
+                if not os.path.exists(full_p):
+                    img1 = "-"
 
             rows.append([
                 item["id"],

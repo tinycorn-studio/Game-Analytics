@@ -434,9 +434,9 @@ async function submitCreateProject() {
 }
 
 function openGSheetModal() {
-    const defaultUrl = "https://script.google.com/macros/s/AKfycbzBlkW2VOCk5iB-mwi4iwdgmExwfcBL861gMB3ESiy76roqV1y5JQWK1J0lNjlD1ZyaTw/exec";
+    const defaultUrl = "https://script.google.com/macros/s/AKfycbzKXOwFxxGt13az1ftoGxYAEy31pLCkVkLhglQmG3Sl6rYUHH0gwJCZA3WdRQS-Iz3XGQ/exec";
     let saved = localStorage.getItem("gsheet_webhook_url") || defaultUrl;
-    if (saved.includes("AKfycbxPdGXN2g") || saved.includes("AKfycbxwg4HKat7VcSaG6ePK")) {
+    if (saved.includes("AKfycbxPdGXN2g") || saved.includes("AKfycbxwg4HKat7VcSaG6ePK") || saved.includes("AKfycbzBlkW2VOCk5iB")) {
         saved = defaultUrl;
         localStorage.setItem("gsheet_webhook_url", defaultUrl);
     }

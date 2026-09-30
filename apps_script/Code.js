@@ -311,7 +311,7 @@ function renderCustomSheet(ss, tabTitle, headers, rows, colWidths) {
     }
 
     // Highlight Mechanic_unlock in soft vibrant green (#86efac)
-    if (hName.indexOf("mechanic_unlock") !== -1 || hName.indexOf("mở khóa") !== -1) {
+    if (hName === "mechanic_unlock" || hName === "mechanic unlock") {
       for (var r = 0; r < rows.length; r++) {
         var val = String(tableValues[r][col - 1] || "").trim();
         if (val && val !== "-" && val !== "None") {
