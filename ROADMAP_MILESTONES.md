@@ -45,6 +45,7 @@ Hệ thống được thiết kế theo tiêu chuẩn kiến trúc **SOLID**, t�
   - [x] Xây dựng `LevelCurveMechanicsAnalyzer` sinh sheet **`Level Curve & Mechanics`** (Level, Phân tầng Tier Normal/Hard/Crazy, Màn unlock highlight xanh, Mật độ bóng/cá, và Ma trận Checkbox cơ chế).
   - [x] Nâng cấp Google Apps Script Webhook v13: Bật tự động xuống dòng (`setWrap(true)`), căn lề trái thông minh, nhúng checkbox tương tác và tô màu trực quan.
   - [x] Nâng cấp Web Dashboard Localhost hiển thị trọn bộ 6 Tab, căn lề và định dạng badge đẹp mắt.
+  - [x] Tối ưu hóa UI/UX Dashboard: Khắc phục lỗi xếp chữ dọc (letter stacking) trên bảng 22 cột bằng `.table-scroll-container` (`width: max-content`), chuẩn hóa tỉ lệ icon cơ chế 1:1 (`.thumb-icon-square`), và tinh chỉnh bộ lọc badge tránh bọc viền vàng các đoạn văn bản dài.
   - [x] Thiết lập tài liệu kiến trúc tổng quan **`SYSTEM_ARCHITECTURE_GUIDE.md`** và quy tắc bắt buộc trong **`AGENTS.md`** & **`GEMINI.md`** cho các đợt phát triển tiếp theo.
 
 ---
