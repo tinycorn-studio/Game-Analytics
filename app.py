@@ -260,8 +260,19 @@ def export_google_sheet(name):
         
         # Google Apps Script web apps return a 302 redirect on POST, requests follows it
         resp = requests.post(webhook_url, json=payload, timeout=30)
+        if resp.status_code != 200:
+            return jsonify({
+                "success": False,
+                "error": f"Google Apps Script trả về lỗi HTTP {resp.status_code}. Vui lòng kiểm tra quyền truy cập Web App (cần quyền 'Anyone' / 'Bất kỳ ai'). Chi tiết: {resp.text[:150]}"
+            }), 400
+            
         try:
             res_data = resp.json()
+            if res_data.get("status") == "error":
+                return jsonify({
+                    "success": False,
+                    "error": res_data.get("message", "Lỗi xử lý từ Google Apps Script")
+                }), 400
             return jsonify({
                 "success": True,
                 "message": res_data.get("message", "Đã xuất dữ liệu lên Google Sheet thành công!"),
@@ -269,9 +280,9 @@ def export_google_sheet(name):
             })
         except Exception:
             return jsonify({
-                "success": True,
-                "message": "Đã gửi dữ liệu tới Google Apps Script thành công!"
-            })
+                "success": False,
+                "error": f"Phản hồi từ Google Apps Script không phải JSON hợp lệ: {resp.text[:200]}"
+            }), 400
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

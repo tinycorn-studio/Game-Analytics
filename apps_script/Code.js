@@ -58,15 +58,20 @@ function doPost(e) {
     sheet.setColumnWidth(8, 110); // Trạng thái
     sheet.setColumnWidth(9, 260); // Ghi chú GD
     
+    // Xóa tab thử nghiệm nếu có
+    var testSheet = ss.getSheetByName("TestGame");
+    if (testSheet) {
+      try { ss.deleteSheet(testSheet); } catch (eIgnore) {}
+    }
+    
     var levels = data.levels || [];
     var rowCount = levels.length;
     
     if (rowCount > 0) {
+      var rowValues = [];
       for (var i = 0; i < rowCount; i++) {
         var lvl = levels[i];
-        var rowNum = i + 2;
         
-        // Tạo công thức nhúng ảnh trực tiếp vào ô tính
         var boardFormula = "-";
         if (lvl.board_url) {
           boardFormula = '=HYPERLINK("' + lvl.board_url + '", IMAGE("' + lvl.board_url + '"))';
@@ -77,34 +82,27 @@ function doPost(e) {
           victoryFormula = '=HYPERLINK("' + lvl.victory_url + '", IMAGE("' + lvl.victory_url + '"))';
         }
         
-        // Ghi dữ liệu dòng
-        sheet.getRange(rowNum, 1).setValue(lvl.level || ("Level " + (i + 1)));
-        
-        if (boardFormula.indexOf("=") === 0) {
-          sheet.getRange(rowNum, 2).setFormula(boardFormula);
-        } else {
-          sheet.getRange(rowNum, 2).setValue(boardFormula);
-        }
-        
-        if (victoryFormula.indexOf("=") === 0) {
-          sheet.getRange(rowNum, 3).setFormula(victoryFormula);
-        } else {
-          sheet.getRange(rowNum, 3).setValue(victoryFormula);
-        }
-        
-        sheet.getRange(rowNum, 4).setValue(lvl.start_time || "");
-        sheet.getRange(rowNum, 5).setValue(lvl.end_time || "");
-        sheet.getRange(rowNum, 6).setValue(lvl.duration || 0);
-        sheet.getRange(rowNum, 7).setValue(lvl.difficulty || "Bình thường");
-        sheet.getRange(rowNum, 8).setValue(lvl.status || "Hoàn thành");
-        sheet.getRange(rowNum, 9).setValue(lvl.notes || "");
+        rowValues.push([
+          lvl.level || ("Level " + (i + 1)),
+          boardFormula,
+          victoryFormula,
+          lvl.start_time || "",
+          lvl.end_time || "",
+          lvl.duration || 0,
+          lvl.difficulty || "Bình thường",
+          lvl.status || "Hoàn thành",
+          lvl.notes || ""
+        ]);
       }
+      
+      // Ghi hàng loạt (Batch setValues) chỉ trong 1 lệnh duy nhất
+      var dataRange = sheet.getRange(2, 1, rowCount, headers.length);
+      dataRange.setValues(rowValues);
       
       // Chỉnh chiều cao hàng 110px để hiển thị ảnh thumbnail điện thoại rõ nét
       sheet.setRowHeights(2, rowCount, 110);
       
       // Căn giữa & kẻ viền bảng
-      var dataRange = sheet.getRange(2, 1, rowCount, headers.length);
       dataRange.setHorizontalAlignment("center");
       dataRange.setVerticalAlignment("middle");
       dataRange.setBorder(true, true, true, true, true, true, "#cbd5e1", SpreadsheetApp.BorderStyle.SOLID);
