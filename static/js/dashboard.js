@@ -74,7 +74,8 @@ function switchGDTab(tabName) {
     });
     const mapBtnId = {
         "Level Matrix": "tabBtn_LevelMatrix",
-        "Mechanics & FTUE": "tabBtn_FTUE",
+        "Mechanics Catalog": "tabBtn_MechanicsCatalog",
+        "Level Curve & Mechanics": "tabBtn_LevelCurve",
         "Boosters & Unlocks": "tabBtn_Boosters",
         "Pacing & Difficulty": "tabBtn_Pacing",
         "Executive Summary": "tabBtn_Summary"
@@ -128,7 +129,7 @@ function renderActiveTab() {
     if (!sheetData || !sheetData.rows || sheetData.rows.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">
+                <td colspan="12" style="text-align: center; color: var(--text-secondary); padding: 2.5rem;">
                     Chưa có dữ liệu cho tab "${currentGDTab}". Hãy chọn video và bấm "BẮT ĐẦU PHÂN TÍCH"!
                 </td>
             </tr>
@@ -141,6 +142,10 @@ function renderActiveTab() {
     sheetData.headers.forEach(h => {
         const th = document.createElement("th");
         th.textContent = h;
+        const hLow = h.toLowerCase();
+        if (hLow.includes("mô tả") || hLow.includes("công dụng") || hLow.includes("áp lực") || hLow.includes("tương tác") || hLow.includes("khuyến nghị")) {
+            th.classList.add("text-left");
+        }
         trHead.appendChild(th);
     });
     // Add action column if Level Matrix
@@ -157,23 +162,59 @@ function renderActiveTab() {
         const tr = document.createElement("tr");
         row.forEach((cell, colIdx) => {
             const td = document.createElement("td");
+            const hName = (sheetData.headers[colIdx] || "").toLowerCase();
             const cellStr = String(cell != null ? cell : "");
 
-            // Image cell detection
-            if (cellStr.endsWith(".jpg") || cellStr.endsWith(".png")) {
+            // Align text columns
+            if (hName.includes("mô tả") || hName.includes("công dụng") || hName.includes("áp lực") || hName.includes("tương tác") || hName.includes("khuyến nghị") || hName.includes("lời thoại")) {
+                td.classList.add("text-left");
+            } else {
+                td.classList.add("text-center");
+            }
+
+            // A. Checkbox cell detection
+            if (cell === true || cellStr === "true") {
+                td.innerHTML = `<span class="chk-icon-active" title="Có xuất hiện cơ chế này"><i class="fa-solid fa-square-check"></i></span>`;
+            } else if (cell === false || cellStr === "false") {
+                td.innerHTML = `<span class="chk-icon-inactive" title="Không có"><i class="fa-regular fa-square"></i></span>`;
+            }
+            // B. Image cell detection
+            else if (cellStr.endsWith(".jpg") || cellStr.endsWith(".png")) {
                 let imgUrl = `/project/${currentProject}/level_image/${cellStr}?t=${cacheBuster}`;
                 td.innerHTML = `
                     <img src="${imgUrl}" class="thumb-preview" title="Bấm để xem ảnh phóng to" 
                          onclick="openSinglePreview('${imgUrl}', '${row[0] || 'Image'}')"
                          onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'80\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%231e293b\\'/></svg>'">
                 `;
-            } else if (cellStr.includes("Choke Point") || cellStr.includes("NGUY CƠ CAO") || cellStr.includes("Áp lực cao")) {
+            } 
+            // C. Tier Badge
+            else if (hName === "tier") {
+                const tLow = cellStr.toLowerCase();
+                let tClass = "tier-normal";
+                if (tLow.includes("crazy") || tLow.includes("super hard")) tClass = "tier-crazy";
+                else if (tLow.includes("hard")) tClass = "tier-hard";
+                td.innerHTML = `<span class="badge-tier ${tClass}">${cellStr}</span>`;
+            }
+            // D. Mechanic Unlock Milestone
+            else if (hName.includes("mechanic_unlock") || hName.includes("mở khóa")) {
+                if (cellStr && cellStr !== "-" && cellStr !== "None") {
+                    td.innerHTML = `<span class="badge-unlock"><i class="fa-solid fa-sparkles"></i> ${cellStr}</span>`;
+                } else {
+                    td.innerHTML = `<span style="color: var(--text-secondary);">-</span>`;
+                }
+            }
+            // E. Status Badge
+            else if ((hName === "status" || hName === "trạng thái") && (cellStr.toLowerCase().includes("done") || cellStr.toLowerCase().includes("hoàn thành"))) {
+                td.innerHTML = `<span class="badge-tag badge-safe">✓ Done</span>`;
+            }
+            // F. Choke / Warning badges
+            else if (cellStr.includes("Choke Point") || cellStr.includes("NGUY CƠ CAO") || cellStr.includes("Áp lực cao")) {
                 td.innerHTML = `<span class="badge-tag badge-choke">${cellStr}</span>`;
             } else if (cellStr.includes("Rất Thấp") || cellStr.includes("An Toàn") || cellStr.includes("Áp lực thấp") || cellStr.includes("Thấp:")) {
                 td.innerHTML = `<span class="badge-tag badge-safe">${cellStr}</span>`;
             } else if (cellStr.includes("Bắt buộc") || cellStr.includes("Trung bình") || cellStr.includes("Áp lực trung bình")) {
                 td.innerHTML = `<span class="badge-tag badge-warning">${cellStr}</span>`;
-            } else if (colIdx === 0 && (cellStr.startsWith("Level") || cellStr.startsWith("Màn"))) {
+            } else if (colIdx === 0 && (cellStr.startsWith("Level") || cellStr.startsWith("Màn") || cellStr.startsWith("Lv."))) {
                 td.innerHTML = `<strong class="level-tag">${cellStr}</strong>`;
             } else if (colIdx === 1 && currentGDTab === "Pacing & Difficulty") {
                 td.innerHTML = `<strong style="color: var(--warning);">${cellStr}s</strong>`;
@@ -188,6 +229,7 @@ function renderActiveTab() {
         // Add action button for Level Matrix
         if (currentGDTab === "Level Matrix") {
             const tdAct = document.createElement("td");
+            tdAct.classList.add("text-center");
             const boardImg = `/project/${currentProject}/level_image/${row[1]}?t=${cacheBuster}`;
             const vicImg = `/project/${currentProject}/level_image/${row[2]}?t=${cacheBuster}`;
             tdAct.innerHTML = `
@@ -392,9 +434,9 @@ async function submitCreateProject() {
 }
 
 function openGSheetModal() {
-    const defaultUrl = "https://script.google.com/macros/s/AKfycbxwg4HKat7VcSaG6ePK-nnqqGBUz5qA8ff2IeEUHE5_BJ8_dHqlYM9EM9BPJW_Y_EbLuQ/exec";
+    const defaultUrl = "https://script.google.com/macros/s/AKfycbzBlkW2VOCk5iB-mwi4iwdgmExwfcBL861gMB3ESiy76roqV1y5JQWK1J0lNjlD1ZyaTw/exec";
     let saved = localStorage.getItem("gsheet_webhook_url") || defaultUrl;
-    if (saved.includes("AKfycbxPdGXN2g")) {
+    if (saved.includes("AKfycbxPdGXN2g") || saved.includes("AKfycbxwg4HKat7VcSaG6ePK")) {
         saved = defaultUrl;
         localStorage.setItem("gsheet_webhook_url", defaultUrl);
     }

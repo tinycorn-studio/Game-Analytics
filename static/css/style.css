@@ -440,3 +440,64 @@ tr:hover td {
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
+/* Tier Badges (Image 4 styling) */
+.badge-tier {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.tier-normal {
+    background-color: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+}
+.tier-hard {
+    background-color: #1e3a8a;
+    color: #93c5fd;
+    border: 1px solid #2563eb;
+}
+.tier-crazy {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+    border: 1px solid #dc2626;
+}
+
+/* Mechanic Unlock Milestone Badge */
+.badge-unlock {
+    display: inline-block;
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid #059669;
+    padding: 0.2rem 0.65rem;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+/* Checkbox Icons */
+.chk-icon-active {
+    color: #10b981;
+    font-size: 1.15rem;
+}
+.chk-icon-inactive {
+    color: #334155;
+    font-size: 1.15rem;
+}
+
+/* Table Text Wrapping & Alignment */
+#levelTable td {
+    max-width: 440px;
+    word-break: break-word;
+    line-height: 1.45;
+}
+.text-left {
+    text-align: left !important;
+}
+.text-center {
+    text-align: center !important;
+}
+

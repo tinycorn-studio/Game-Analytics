@@ -1,5 +1,7 @@
 from .base_analyzer import BaseGameAnalyzer, AnalyzerResult
 from .level_matrix_analyzer import LevelMatrixAnalyzer
+from .mechanics_catalog_analyzer import MechanicsCatalogAnalyzer
+from .level_curve_analyzer import LevelCurveMechanicsAnalyzer
 from .ftue_analyzer import FTUEMechanicsAnalyzer
 from .booster_analyzer import BoosterProgressionAnalyzer
 from .pacing_analyzer import PacingDifficultyAnalyzer
@@ -9,6 +11,8 @@ __all__ = [
     "BaseGameAnalyzer",
     "AnalyzerResult",
     "LevelMatrixAnalyzer",
+    "MechanicsCatalogAnalyzer",
+    "LevelCurveMechanicsAnalyzer",
     "FTUEMechanicsAnalyzer",
     "BoosterProgressionAnalyzer",
     "PacingDifficultyAnalyzer",

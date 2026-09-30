@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from .analyzers.base_analyzer import BaseGameAnalyzer, AnalyzerResult
 from .analyzers.level_matrix_analyzer import LevelMatrixAnalyzer
+from .analyzers.mechanics_catalog_analyzer import MechanicsCatalogAnalyzer
+from .analyzers.level_curve_analyzer import LevelCurveMechanicsAnalyzer
 from .analyzers.ftue_analyzer import FTUEMechanicsAnalyzer
 from .analyzers.booster_analyzer import BoosterProgressionAnalyzer
 from .analyzers.pacing_analyzer import PacingDifficultyAnalyzer
@@ -17,9 +19,10 @@ class GameDesignAggregator:
     def __init__(self, analyzers: Optional[List[BaseGameAnalyzer]] = None):
         self._analyzers: List[BaseGameAnalyzer] = analyzers if analyzers is not None else []
         if not self._analyzers:
-            # Default complete Game Design analysis suite
+            # Complete 6-Tab Game Design analysis suite
             self.register_analyzer(LevelMatrixAnalyzer())
-            self.register_analyzer(FTUEMechanicsAnalyzer())
+            self.register_analyzer(MechanicsCatalogAnalyzer())
+            self.register_analyzer(LevelCurveMechanicsAnalyzer())
             self.register_analyzer(BoosterProgressionAnalyzer())
             self.register_analyzer(PacingDifficultyAnalyzer())
             self.register_analyzer(ExecutiveSummaryAnalyzer())
@@ -53,7 +56,9 @@ class GameDesignAggregator:
                 new_row = []
                 for cell in row:
                     val_str = str(cell)
-                    if val_str.endswith(".jpg") or val_str.endswith(".png"):
+                    if isinstance(cell, bool):
+                        new_row.append({"type": "checkbox", "value": cell})
+                    elif val_str.endswith(".jpg") or val_str.endswith(".png"):
                         # Build CDN image url
                         clean_path = val_str.replace("\\", "/")
                         if clean_path.startswith("boosters/"):

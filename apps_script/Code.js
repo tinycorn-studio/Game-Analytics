@@ -207,6 +207,20 @@ function renderCustomSheet(ss, tabTitle, headers, rows, colWidths) {
 
   var hasImage = false;
   var tableValues = [];
+  var isCheckboxCol = [];
+
+  // Detect which columns are checkboxes
+  for (var c = 0; c < headers.length; c++) {
+    var isChk = false;
+    for (var r = 0; r < Math.min(rows.length, 5); r++) {
+      var cellVal = rows[r][c];
+      if (typeof cellVal === "boolean" || (cellVal && typeof cellVal === "object" && cellVal.type === "checkbox")) {
+        isChk = true;
+        break;
+      }
+    }
+    isCheckboxCol.push(isChk);
+  }
 
   for (var r = 0; r < rows.length; r++) {
     var rowData = rows[r];
@@ -225,6 +239,10 @@ function renderCustomSheet(ss, tabTitle, headers, rows, colWidths) {
         } catch (eImg) {
           formattedRow.push("-");
         }
+      } else if (cell && typeof cell === "object" && cell.type === "checkbox") {
+        formattedRow.push(cell.value === true || cell.value === "true");
+      } else if (typeof cell === "boolean") {
+        formattedRow.push(cell);
       } else if (cell && typeof cell === "object" && cell.type === "text") {
         formattedRow.push(cell.value);
       } else {
@@ -251,10 +269,91 @@ function renderCustomSheet(ss, tabTitle, headers, rows, colWidths) {
     dataRange.setValues(safeValues);
   }
 
-  var rowHeight = hasImage ? 110 : 35;
-  sheet.setRowHeights(2, rows.length, rowHeight);
-
-  dataRange.setHorizontalAlignment("center");
+  // 1. Text wrapping and vertical alignment
+  dataRange.setWrap(true);
   dataRange.setVerticalAlignment("middle");
   dataRange.setBorder(true, true, true, true, true, true, "#cbd5e1", SpreadsheetApp.BorderStyle.SOLID);
+
+  var rowHeight = hasImage ? 110 : 34;
+  sheet.setRowHeights(2, rows.length, rowHeight);
+
+  // 2. Smart column alignment & badge styling
+  for (var col = 1; col <= headers.length; col++) {
+    var hName = (headers[col - 1] || "").toLowerCase();
+    var colRange = sheet.getRange(2, col, rows.length, 1);
+
+    if (isCheckboxCol[col - 1]) {
+      try {
+        colRange.insertCheckboxes();
+      } catch (eChk) {}
+      colRange.setHorizontalAlignment("center");
+      continue;
+    }
+
+    // Long descriptive text columns: Align LEFT
+    if (hName.indexOf("mô tả") !== -1 || 
+        hName.indexOf("công dụng") !== -1 || 
+        hName.indexOf("áp lực") !== -1 || 
+        hName.indexOf("khuyến nghị") !== -1 || 
+        hName.indexOf("lời thoại") !== -1 || 
+        hName.indexOf("quy tắc") !== -1 || 
+        hName.indexOf("tác động") !== -1 || 
+        hName.indexOf("tương tác") !== -1 ||
+        hName.indexOf("advice") !== -1 ||
+        hName.indexOf("utility") !== -1 ||
+        hName.indexOf("monetization") !== -1 ||
+        hName.indexOf("description") !== -1 ||
+        hName.indexOf("choke point risk") !== -1 ||
+        hName.indexOf("ghi chú") !== -1) {
+      colRange.setHorizontalAlignment("left");
+    } else {
+      colRange.setHorizontalAlignment("center");
+    }
+
+    // Highlight Mechanic_unlock in soft vibrant green (#86efac)
+    if (hName.indexOf("mechanic_unlock") !== -1 || hName.indexOf("mở khóa") !== -1) {
+      for (var r = 0; r < rows.length; r++) {
+        var val = String(tableValues[r][col - 1] || "").trim();
+        if (val && val !== "-" && val !== "None") {
+          var cellRange = sheet.getRange(2 + r, col);
+          cellRange.setBackground("#86efac");
+          cellRange.setFontColor("#14532d");
+          cellRange.setFontWeight("bold");
+        }
+      }
+    }
+
+    // Style Tier column: Normal, Hard (soft blue), Crazy (soft red)
+    if (hName === "tier") {
+      for (var r = 0; r < rows.length; r++) {
+        var tVal = String(tableValues[r][col - 1] || "").trim().toLowerCase();
+        var cellRange = sheet.getRange(2 + r, col);
+        if (tVal.indexOf("crazy") !== -1 || tVal.indexOf("super hard") !== -1) {
+          cellRange.setBackground("#fee2e2");
+          cellRange.setFontColor("#991b1b");
+          cellRange.setFontWeight("bold");
+        } else if (tVal.indexOf("hard") !== -1) {
+          cellRange.setBackground("#dbeafe");
+          cellRange.setFontColor("#1e40af");
+          cellRange.setFontWeight("bold");
+        } else if (tVal.indexOf("normal") !== -1) {
+          cellRange.setBackground("#f8fafc");
+          cellRange.setFontColor("#475569");
+        }
+      }
+    }
+
+    // Style Status column: Done (soft green)
+    if (hName === "status" || hName === "trạng thái") {
+      for (var r = 0; r < rows.length; r++) {
+        var sVal = String(tableValues[r][col - 1] || "").trim().toLowerCase();
+        if (sVal.indexOf("done") !== -1 || sVal.indexOf("hoàn thành") !== -1) {
+          var cellRange = sheet.getRange(2 + r, col);
+          cellRange.setBackground("#dcfce7");
+          cellRange.setFontColor("#166534");
+          cellRange.setFontWeight("bold");
+        }
+      }
+    }
+  }
 }

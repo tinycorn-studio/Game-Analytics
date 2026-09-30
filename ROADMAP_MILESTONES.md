@@ -40,6 +40,13 @@ Hệ thống được thiết kế theo tiêu chuẩn kiến trúc **SOLID**, t�
   - [x] Chạy kiểm thử End-to-End thực tế trên video `FishSortPuzzle`.
   - [x] Đồng bộ toàn bộ mã nguồn lên GitHub Repo `tinycorn-studio/Game-Analytics`.
 
+- [x] **Milestone 7: Tách Rời Bách Khoa Cơ Chế (Mechanics Catalog) & Ma Trận Màn (Level Curve), Khắc Phục Tràn Chữ GAS v13**
+  - [x] Xây dựng `MechanicsCatalogAnalyzer` sinh sheet **`Mechanics Catalog`** (ID, Tên cơ chế, First Level, Mô tả luật, Cách hóa giải, Ảnh crop) chuẩn theo Design Bible.
+  - [x] Xây dựng `LevelCurveMechanicsAnalyzer` sinh sheet **`Level Curve & Mechanics`** (Level, Phân tầng Tier Normal/Hard/Crazy, Màn unlock highlight xanh, Mật độ bóng/cá, và Ma trận Checkbox cơ chế).
+  - [x] Nâng cấp Google Apps Script Webhook v13: Bật tự động xuống dòng (`setWrap(true)`), căn lề trái thông minh, nhúng checkbox tương tác và tô màu trực quan.
+  - [x] Nâng cấp Web Dashboard Localhost hiển thị trọn bộ 6 Tab, căn lề và định dạng badge đẹp mắt.
+  - [x] Thiết lập tài liệu kiến trúc tổng quan **`SYSTEM_ARCHITECTURE_GUIDE.md`** và quy tắc bắt buộc trong **`AGENTS.md`** & **`GEMINI.md`** cho các đợt phát triển tiếp theo.
+
 ---
 
 ## 🏛️ THIẾT KẾ KIẾN TRÚC HỆ THỐNG (SOLID PRINCIPLES)
